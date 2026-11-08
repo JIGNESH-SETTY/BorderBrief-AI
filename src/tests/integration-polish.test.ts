@@ -105,10 +105,10 @@ describe("Sprint 7: Integration Polish & Final Regression Suite", () => {
     });
   };
 
-  afterEach(() => {
+  afterEach(async () => {
     for (const id of createdInvoiceIds) {
       try {
-        deleteInvoice(id);
+        await deleteInvoice(id);
       } catch {
         // ignore cleanup errors
       }
@@ -120,12 +120,12 @@ describe("Sprint 7: Integration Polish & Final Regression Suite", () => {
     it("GET /api/invoices returns all stored invoices enriched with linked payment metadata", async () => {
       // 1. Create and save invoice 1 (Unpaid)
       const draft1 = createTestDraft();
-      const saved1 = saveInvoice(draft1);
+      const saved1 = await saveInvoice(draft1);
       createdInvoiceIds.push(saved1.id);
 
       // 2. Create and save invoice 2 (Paid)
       const draft2 = createTestDraft();
-      const saved2 = saveInvoice(draft2);
+      const saved2 = await saveInvoice(draft2);
       createdInvoiceIds.push(saved2.id);
 
       // 3. Create linked payment for invoice 2
@@ -141,7 +141,7 @@ describe("Sprint 7: Integration Polish & Final Regression Suite", () => {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-      savePayment(paymentRecord);
+      await savePayment(paymentRecord);
 
       // 4. Call GET /api/invoices
       const req = new NextRequest("http://localhost:3000/api/invoices");
@@ -182,7 +182,7 @@ describe("Sprint 7: Integration Polish & Final Regression Suite", () => {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-      savePayment(paymentRecord);
+      await savePayment(paymentRecord);
 
       // Lookup by Payment ID
       const req1 = new NextRequest(`http://localhost:3000/api/payments/${paymentRecord.id}`);
@@ -214,7 +214,7 @@ describe("Sprint 7: Integration Polish & Final Regression Suite", () => {
 
     it("GET /api/invoices/[id]/pdf streams a valid PDF with correct content-type and filename header", async () => {
       const draft = createTestDraft();
-      const saved = saveInvoice(draft);
+      const saved = await saveInvoice(draft);
       createdInvoiceIds.push(saved.id);
 
       const req = new NextRequest(`http://localhost:3000/api/invoices/${saved.id}/pdf`);

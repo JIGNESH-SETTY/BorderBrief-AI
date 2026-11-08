@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
 
   // 1. Check idempotency cache (local single-process deduplication)
   if (idempotencyKey) {
-    const existing = getIdempotencyRecord(idempotencyKey);
+    const existing = await getIdempotencyRecord(idempotencyKey);
     if (existing && existing.status === "COMPLETED" && existing.responseJson) {
       try {
         const cachedResponse = JSON.parse(existing.responseJson);
@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (idempotencyKey) {
-      startIdempotentRequest(idempotencyKey, "/api/products/analyze");
+      await startIdempotentRequest(idempotencyKey, "/api/products/analyze");
     }
 
     // 3. Dispatch to Gemini Analysis (or pre-calibrated demo baseline)
@@ -134,13 +134,13 @@ export async function POST(req: NextRequest) {
 
     // 4. Save to idempotency store
     if (idempotencyKey) {
-      completeIdempotentRequest(idempotencyKey, analysis);
+      await completeIdempotentRequest(idempotencyKey, analysis);
     }
 
     return NextResponse.json(analysis, { status: 200 });
   } catch (err: unknown) {
     if (idempotencyKey) {
-      failIdempotentRequest(idempotencyKey);
+      await failIdempotentRequest(idempotencyKey);
     }
 
     if (err instanceof GeminiApiError) {

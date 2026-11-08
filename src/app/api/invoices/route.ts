@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
   const idempotencyKey = req.headers.get("x-idempotency-key") || "";
 
   if (idempotencyKey) {
-    const existing = getIdempotencyRecord(idempotencyKey);
+    const existing = await getIdempotencyRecord(idempotencyKey);
     if (existing && existing.status === "COMPLETED" && existing.responseJson) {
       try {
         const cached = JSON.parse(existing.responseJson);
@@ -161,7 +161,7 @@ export async function POST(req: NextRequest) {
 
     // Idempotency lock
     if (idempotencyKey) {
-      const locked = startIdempotentRequest(idempotencyKey, "/api/invoices");
+      const locked = await startIdempotentRequest(idempotencyKey, "/api/invoices");
       if (!locked) {
         return NextResponse.json(
           {
@@ -177,9 +177,9 @@ export async function POST(req: NextRequest) {
     // Build deterministic draft
     const invoiceDraft = buildCommercialInvoice(json as CreateInvoiceRequest);
 
-    // Persist invoice draft to SQLite
+    // Persist invoice draft to SQLite / Turso
     try {
-      saveInvoice(invoiceDraft);
+      await saveInvoice(invoiceDraft);
     } catch (dbErr) {
       // In stateless serverless production without persistent volume, log and proceed with generated draft
       console.warn("Invoice database persistence notice:", dbErr);
@@ -187,7 +187,7 @@ export async function POST(req: NextRequest) {
 
     // Complete idempotency
     if (idempotencyKey) {
-      completeIdempotentRequest(idempotencyKey, invoiceDraft);
+      await completeIdempotentRequest(idempotencyKey, invoiceDraft);
     }
 
     return NextResponse.json(invoiceDraft, {
@@ -199,7 +199,7 @@ export async function POST(req: NextRequest) {
     });
   } catch (err: unknown) {
     if (idempotencyKey) {
-      failIdempotentRequest(idempotencyKey);
+      await failIdempotentRequest(idempotencyKey);
     }
     const message = err instanceof Error ? err.message : "Failed to process commercial invoice draft.";
     return NextResponse.json(
@@ -219,24 +219,26 @@ export async function GET(req: NextRequest) {
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "20", 10)));
     const offset = Math.max(0, parseInt(searchParams.get("offset") || "0", 10));
 
-    const invoices = listInvoices(limit, offset);
-    const enrichedInvoices = invoices.map((inv) => {
-      const payment = getPaymentByInvoiceId(inv.id);
-      return {
-        ...inv,
-        payment: payment
-          ? {
-              id: payment.id,
-              paypalOrderId: payment.paypalOrderId,
-              paypalCaptureId: payment.paypalCaptureId || null,
-              status: payment.status,
-              amount: payment.amount,
-              currency: payment.currency,
-              captureTime: payment.captureTime || null,
-            }
-          : null,
-      };
-    });
+    const invoices = await listInvoices(limit, offset);
+    const enrichedInvoices = await Promise.all(
+      invoices.map(async (inv) => {
+        const payment = await getPaymentByInvoiceId(inv.id);
+        return {
+          ...inv,
+          payment: payment
+            ? {
+                id: payment.id,
+                paypalOrderId: payment.paypalOrderId,
+                paypalCaptureId: payment.paypalCaptureId || null,
+                status: payment.status,
+                amount: payment.amount,
+                currency: payment.currency,
+                captureTime: payment.captureTime || null,
+              }
+            : null,
+        };
+      })
+    );
 
     return NextResponse.json(
       {

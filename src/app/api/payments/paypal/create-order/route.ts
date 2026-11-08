@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
 
   // 1. Idempotency Check
   if (idempotencyKey) {
-    const existing = getIdempotencyRecord(idempotencyKey);
+    const existing = await getIdempotencyRecord(idempotencyKey);
     if (existing && existing.status === "COMPLETED" && existing.responseJson) {
       try {
         const cached = JSON.parse(existing.responseJson);
@@ -74,8 +74,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2. Retrieve invoice from SQLite
-    const invoice = getInvoice(invoiceId);
+    // 2. Retrieve invoice from SQLite / Turso
+    const invoice = await getInvoice(invoiceId);
     if (!invoice) {
       return NextResponse.json(
         {
@@ -123,13 +123,13 @@ export async function POST(req: NextRequest) {
     }
 
     if (idempotencyKey) {
-      startIdempotentRequest(idempotencyKey, req.nextUrl.pathname);
+      await startIdempotentRequest(idempotencyKey, req.nextUrl.pathname);
     }
 
     // 5. Create PayPal Sandbox Order
     const orderResult = await createPayPalOrder(invoice, idempotencyKey || undefined);
 
-    // 6. Store local payment record in SQLite
+    // 6. Store local payment record in SQLite / Turso
     const paymentId = `pay_${randomUUID()}`;
     const now = new Date().toISOString();
 
@@ -152,7 +152,7 @@ export async function POST(req: NextRequest) {
       },
     };
 
-    savePayment(paymentRecord);
+    await savePayment(paymentRecord);
 
     const responsePayload = {
       orderId: orderResult.orderId,
@@ -168,7 +168,7 @@ export async function POST(req: NextRequest) {
     };
 
     if (idempotencyKey) {
-      completeIdempotentRequest(idempotencyKey, responsePayload);
+      await completeIdempotentRequest(idempotencyKey, responsePayload);
     }
 
     return NextResponse.json(responsePayload, {
@@ -180,7 +180,7 @@ export async function POST(req: NextRequest) {
     });
   } catch (err: unknown) {
     if (idempotencyKey) {
-      failIdempotentRequest(idempotencyKey);
+      await failIdempotentRequest(idempotencyKey);
     }
 
     if (err instanceof PayPalError) {

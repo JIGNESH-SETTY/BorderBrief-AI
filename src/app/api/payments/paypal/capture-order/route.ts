@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
   try {
 
     // 1. Retrieve local payment record
-    const payment = getPaymentByOrderId(orderId);
+    const payment = await getPaymentByOrderId(orderId);
     if (!payment) {
       return NextResponse.json(
         {
@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 3. Retrieve saved invoice for financial verification
-    const invoice = getInvoice(payment.invoiceId);
+    const invoice = await getInvoice(payment.invoiceId);
     if (!invoice) {
       return NextResponse.json(
         {
@@ -120,7 +120,7 @@ export async function POST(req: NextRequest) {
     const capturedCurrency = captureResult.currency.toUpperCase();
 
     if (capturedCurrency !== expectedCurrency) {
-      updatePaymentStatus(
+      await updatePaymentStatus(
         payment.id,
         "FAILED",
         captureResult.captureId,
@@ -146,7 +146,7 @@ export async function POST(req: NextRequest) {
 
     // Tolerating fractional epsilon for currency comparisons (0.01)
     if (!areAmountsEqual(capturedAmount, invoice.invoiceTotalUSD, invoice.currency)) {
-      updatePaymentStatus(
+      await updatePaymentStatus(
         payment.id,
         "FAILED",
         captureResult.captureId,
@@ -173,7 +173,7 @@ export async function POST(req: NextRequest) {
     // 7. Verify capture status
     if (captureResult.status !== "COMPLETED") {
       const interimStatus = captureResult.status === "PENDING" ? "CAPTURE_PENDING" : "FAILED";
-      updatePaymentStatus(
+      await updatePaymentStatus(
         payment.id,
         interimStatus,
         captureResult.captureId,
@@ -199,7 +199,7 @@ export async function POST(req: NextRequest) {
     // ensure the transaction does not silently disappear and provide structured reconciliation details.
     let updatedPayment;
     try {
-      updatedPayment = updatePaymentStatus(
+      updatedPayment = await updatePaymentStatus(
         payment.id,
         "COMPLETED",
         captureResult.captureId,

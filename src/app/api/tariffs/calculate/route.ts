@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
 
   // 1. Check idempotency cache / persistence
   if (idempotencyKey) {
-    const existing = getIdempotencyRecord(idempotencyKey);
+    const existing = await getIdempotencyRecord(idempotencyKey);
     if (existing && existing.status === "COMPLETED" && existing.responseJson) {
       try {
         const cachedResponse = JSON.parse(existing.responseJson);
@@ -145,7 +145,7 @@ export async function POST(req: NextRequest) {
 
     // 3. Mark idempotency in-progress if key provided
     if (idempotencyKey) {
-      const started = startIdempotentRequest(idempotencyKey, "/api/tariffs/calculate");
+      const started = await startIdempotentRequest(idempotencyKey, "/api/tariffs/calculate");
       if (!started) {
         return NextResponse.json(
           {
@@ -324,9 +324,9 @@ export async function POST(req: NextRequest) {
     // 4. Execute deterministic calculation engine
     const calculationResult = calculateLandedCost(calculationRequest);
 
-    // 5. Persist to SQLite
+    // 5. Persist to SQLite / Turso
     try {
-      saveLandedCostCalculation(
+      await saveLandedCostCalculation(
         calculationResult,
         calculationRequest.productId,
         (json.classificationId as string) || undefined
@@ -337,13 +337,13 @@ export async function POST(req: NextRequest) {
 
     // 6. Complete idempotency record
     if (idempotencyKey) {
-      completeIdempotentRequest(idempotencyKey, calculationResult);
+      await completeIdempotentRequest(idempotencyKey, calculationResult);
     }
 
     return NextResponse.json(calculationResult, { status: 200 });
   } catch (err) {
     if (idempotencyKey) {
-      failIdempotentRequest(idempotencyKey);
+      await failIdempotentRequest(idempotencyKey);
     }
 
     if (err instanceof LandedCostCalculationError) {

@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from "next/server.js";
 import { getInvoice, getInvoiceByNumber, deleteInvoice } from "../../../../lib/db/database.ts";
+import { isDemoMutationRestricted } from "../../../../lib/security/demo-auth.ts";
 
 const AUTH_HEADERS = {
   "X-BorderBrief-Auth-Mode": "single-user-demo-unauthenticated",
@@ -27,9 +28,9 @@ export async function GET(
       );
     }
 
-    let invoice = getInvoice(id);
+    let invoice = await getInvoice(id);
     if (!invoice) {
-      invoice = getInvoiceByNumber(id);
+      invoice = await getInvoiceByNumber(id);
     }
 
     if (!invoice) {
@@ -66,7 +67,19 @@ export async function DELETE(
       );
     }
 
-    const deleted = deleteInvoice(id);
+    // Phase 4: Protect shared demo environments from destructive mutations
+    if (isDemoMutationRestricted()) {
+      return NextResponse.json(
+        {
+          error: "Invoice deletion is disabled in shared demo environments to preserve evaluation state.",
+          code: "DEMO_MUTATION_RESTRICTED",
+          statusCode: 403,
+        },
+        { status: 403, headers: AUTH_HEADERS }
+      );
+    }
+
+    const deleted = await deleteInvoice(id);
     if (!deleted) {
       return NextResponse.json(
         { error: `Invoice "${id}" could not be deleted or does not exist.`, code: "NOT_FOUND", statusCode: 404 },

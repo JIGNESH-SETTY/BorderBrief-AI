@@ -22,9 +22,9 @@ export async function GET(
       );
     }
 
-    let invoice = getInvoice(id);
+    let invoice = await getInvoice(id);
     if (!invoice) {
-      invoice = getInvoiceByNumber(id);
+      invoice = await getInvoiceByNumber(id);
     }
 
     if (!invoice) {

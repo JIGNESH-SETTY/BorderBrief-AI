@@ -44,7 +44,10 @@ export async function GET(
     }
 
     // Lookup by internal payment ID, PayPal Order ID, or linked invoice ID
-    const payment = getPayment(id) || getPaymentByOrderId(id) || getPaymentByInvoiceId(id);
+    const payment =
+      (await getPayment(id)) ||
+      (await getPaymentByOrderId(id)) ||
+      (await getPaymentByInvoiceId(id));
 
     if (!payment) {
       return NextResponse.json(

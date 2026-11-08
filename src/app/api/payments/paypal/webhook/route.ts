@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
 
     // 1. Mandatory Signature Headers Presence Check
     if (!transmissionId || !transmissionTime || !certUrl || !authAlgo || !transmissionSig) {
-      saveWebhookLog(eventId, eventType, eventPayload, "FAILED");
+      await saveWebhookLog(eventId, eventType, eventPayload, "FAILED");
       return NextResponse.json(
         {
           error: "Missing required PayPal signature verification headers.",
@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Idempotency Check: Don't re-process previously recorded webhooks
-    if (isWebhookEventProcessed(eventId)) {
+    if (await isWebhookEventProcessed(eventId)) {
       return NextResponse.json(
         { status: "ALREADY_PROCESSED", eventId },
         { status: 200 }
@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (!isPayPalConfigured()) {
-      saveWebhookLog(eventId, eventType, eventPayload, "FAILED");
+      await saveWebhookLog(eventId, eventType, eventPayload, "FAILED");
       return NextResponse.json(
         { error: "PayPal credentials not configured on server.", code: "PAYPAL_NOT_CONFIGURED" },
         { status: 503 }
@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
 
     if (!webhookId) {
       // If PAYPAL_WEBHOOK_ID is not configured, we cannot verify the signature
-      saveWebhookLog(eventId, eventType, eventPayload, "FAILED");
+      await saveWebhookLog(eventId, eventType, eventPayload, "FAILED");
       return NextResponse.json(
         {
           error: "PAYPAL_WEBHOOK_ID is not configured in environment. Cannot verify signature.",
@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (!isVerified) {
-      saveWebhookLog(eventId, eventType, eventPayload, "FAILED");
+      await saveWebhookLog(eventId, eventType, eventPayload, "FAILED");
       return NextResponse.json(
         { error: "PayPal webhook signature verification failed.", code: "WEBHOOK_SIGNATURE_INVALID" },
         { status: 400 }
@@ -125,7 +125,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Log verified event
-    saveWebhookLog(eventId, eventType, eventPayload, "VERIFIED");
+    await saveWebhookLog(eventId, eventType, eventPayload, "VERIFIED");
 
     // 3. Process Specific Event Types
     const resource = eventPayload.resource || {};
@@ -144,9 +144,9 @@ export async function POST(req: NextRequest) {
       captureId = suppData?.related_ids?.capture_id || (resource.id as string);
     }
 
-    let payment = orderId ? getPaymentByOrderId(orderId) : null;
+    let payment = orderId ? (await getPaymentByOrderId(orderId)) : null;
     if (!payment && captureId) {
-      payment = getPaymentByCaptureId(captureId);
+      payment = await getPaymentByCaptureId(captureId);
     }
 
     // Server-side Authoritative Retrieval if payload lacks reliable identifiers
@@ -157,7 +157,7 @@ export async function POST(req: NextRequest) {
         const retrievedOrderId = capSupp?.related_ids?.order_id || (capDetails.custom_id as string);
         if (retrievedOrderId) {
           orderId = retrievedOrderId;
-          payment = getPaymentByOrderId(retrievedOrderId);
+          payment = await getPaymentByOrderId(retrievedOrderId);
         }
       } catch {
         // Fallback safely if capture lookup fails
@@ -202,7 +202,7 @@ export async function POST(req: NextRequest) {
         // Approval is NOT capture; update status to APPROVED only if currently CREATED.
         // Strictly never marks invoice PAID.
         if (payment.status === "CREATED") {
-          updatePaymentStatus(payment.id, "APPROVED", undefined, undefined, undefined, {
+          await updatePaymentStatus(payment.id, "APPROVED", undefined, undefined, undefined, {
             lastWebhookEvent: eventType,
             eventId,
           });
@@ -216,9 +216,9 @@ export async function POST(req: NextRequest) {
         const payerEmail = (resource.payer as { email_address?: string })?.email_address;
 
         // 1. Verify associated invoice exists
-        const invoice = getInvoice(payment.invoiceId);
+        const invoice = await getInvoice(payment.invoiceId);
         if (!invoice) {
-          updatePaymentStatus(payment.id, "FAILED", capId, payerEmail, undefined, {
+          await updatePaymentStatus(payment.id, "FAILED", capId, payerEmail, undefined, {
             error: "ASSOCIATED_INVOICE_NOT_FOUND",
             eventId,
           });
@@ -255,7 +255,7 @@ export async function POST(req: NextRequest) {
 
         // 3. Verify capture currency
         if (upperCurrency !== expectedCurrency) {
-          updatePaymentStatus(payment.id, "FAILED", capId, payerEmail, undefined, {
+          await updatePaymentStatus(payment.id, "FAILED", capId, payerEmail, undefined, {
             error: "WEBHOOK_CURRENCY_MISMATCH",
             expectedCurrency,
             receivedCurrency: upperCurrency,
@@ -272,7 +272,7 @@ export async function POST(req: NextRequest) {
 
         // 4. Verify capture amount in minor units
         if (!areAmountsEqual(numericAmount, invoice.invoiceTotalUSD, expectedCurrency)) {
-          updatePaymentStatus(payment.id, "FAILED", capId, payerEmail, undefined, {
+          await updatePaymentStatus(payment.id, "FAILED", capId, payerEmail, undefined, {
             error: "WEBHOOK_AMOUNT_MISMATCH",
             expectedAmount: invoice.invoiceTotalUSD,
             receivedAmount: numericAmount,
@@ -288,7 +288,7 @@ export async function POST(req: NextRequest) {
         }
 
         // 5. Verification passed: update payment to COMPLETED (atomically marks invoice as PAID)
-        updatePaymentStatus(payment.id, "COMPLETED", capId, payerEmail, undefined, {
+        await updatePaymentStatus(payment.id, "COMPLETED", capId, payerEmail, undefined, {
           lastWebhookEvent: eventType,
           eventId,
           captureDetails: resource,
@@ -297,7 +297,7 @@ export async function POST(req: NextRequest) {
       }
 
       case "PAYMENT.CAPTURE.DENIED": {
-        updatePaymentStatus(payment.id, "FAILED", (resource.id as string) || captureId, undefined, undefined, {
+        await updatePaymentStatus(payment.id, "FAILED", (resource.id as string) || captureId, undefined, undefined, {
           lastWebhookEvent: eventType,
           eventId,
           denialDetails: resource,
@@ -306,7 +306,7 @@ export async function POST(req: NextRequest) {
       }
 
       case "PAYMENT.CAPTURE.REFUNDED": {
-        updatePaymentStatus(payment.id, "REFUNDED", (resource.id as string) || captureId, undefined, undefined, {
+        await updatePaymentStatus(payment.id, "REFUNDED", (resource.id as string) || captureId, undefined, undefined, {
           lastWebhookEvent: eventType,
           eventId,
           refundDetails: resource,
