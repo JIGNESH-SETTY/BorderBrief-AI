@@ -81,6 +81,52 @@ export async function verifySessionToken(token: string | undefined): Promise<boo
 }
 
 /**
+ * Sanitizes and validates a redirect path to prevent open redirect vulnerabilities.
+ * Strictly permits only relative internal application paths (e.g. "/", "/invoices", "/export/new").
+ * Rejects external URLs, protocol-relative URLs, backslash bypasses, and javascript/data schemes.
+ */
+export function sanitizeReturnTo(url: string | null | undefined): string {
+  if (!url || typeof url !== "string") {
+    return "/";
+  }
+
+  // Reject CRLF injection or null bytes in any position
+  if (/[\r\n\0]/.test(url)) {
+    return "/";
+  }
+
+  const trimmed = url.trim();
+
+  // Must not be empty, must start with exactly one forward slash, and must not be protocol-relative ("//")
+  if (!trimmed.startsWith("/") || trimmed.startsWith("//")) {
+    return "/";
+  }
+
+  // Reject backslashes which can cause client or browser URL normalization bypasses (e.g. "/\evil.com")
+  if (trimmed.includes("\\")) {
+    return "/";
+  }
+
+  // Reject control characters, newlines, or unencoded whitespace
+  if (/[\x00-\x1F\x7F\s]/.test(trimmed)) {
+    return "/";
+  }
+
+  // Reject colons in the pathname portion before '?' or '#' to prevent scheme or host bypasses
+  const queryIndex = trimmed.indexOf("?");
+  const hashIndex = trimmed.indexOf("#");
+  const pathEnd = Math.min(
+    queryIndex === -1 ? trimmed.length : queryIndex,
+    hashIndex === -1 ? trimmed.length : hashIndex
+  );
+  if (trimmed.slice(0, pathEnd).includes(":")) {
+    return "/";
+  }
+
+  return trimmed;
+}
+
+/**
  * Returns true if destructive mutations (like draft invoice deletion) should be blocked.
  */
 export function isDemoMutationRestricted(): boolean {

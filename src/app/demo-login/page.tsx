@@ -5,11 +5,13 @@ import { useRouter, useSearchParams } from "next/navigation.js";
 import { Lock, ShieldCheck, ArrowRight, AlertCircle } from "lucide-react";
 import { Button } from "../../components/ui/button.tsx";
 import { Card } from "../../components/ui/card.tsx";
+import { sanitizeReturnTo } from "../../lib/security/demo-auth.ts";
 
 function DemoLoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const returnTo = searchParams.get("returnTo") || "/";
+  const rawReturnTo = searchParams.get("returnTo");
+  const returnTo = sanitizeReturnTo(rawReturnTo);
 
   const [passcode, setPasscode] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);

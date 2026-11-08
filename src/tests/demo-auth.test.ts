@@ -7,6 +7,7 @@ import {
   isDemoMutationRestricted,
   DEMO_COOKIE_NAME,
   DEMO_EXEMPT_ROUTES,
+  sanitizeReturnTo,
 } from "../lib/security/demo-auth.ts";
 
 describe("Sprint 8: Demo Security & Gatekeeper", () => {
@@ -90,5 +91,72 @@ describe("Sprint 8: Demo Security & Gatekeeper", () => {
       process.env.DEMO_ACCESS_SECRET = originalSecret;
       (process.env as Record<string, string | undefined>).NODE_ENV = originalEnv;
     }
+  });
+
+  describe("sanitizeReturnTo — Open Redirect Prevention", () => {
+    it("permits safe, legitimate internal application paths", () => {
+      assert.equal(sanitizeReturnTo("/"), "/");
+      assert.equal(sanitizeReturnTo("/invoices"), "/invoices");
+      assert.equal(sanitizeReturnTo("/export/new"), "/export/new");
+      assert.equal(sanitizeReturnTo("/corridor/india-usa"), "/corridor/india-usa");
+      assert.equal(sanitizeReturnTo("/invoices?page=2"), "/invoices?page=2");
+      assert.equal(
+        sanitizeReturnTo("/invoices?id=INV-2026-001&tab=details"),
+        "/invoices?id=INV-2026-001&tab=details"
+      );
+      assert.equal(sanitizeReturnTo("/invoices#summary"), "/invoices#summary");
+      assert.equal(sanitizeReturnTo("  /invoices  "), "/invoices");
+    });
+
+    it("rejects absolute external URLs and falls back to root", () => {
+      assert.equal(sanitizeReturnTo("https://evil.com"), "/");
+      assert.equal(sanitizeReturnTo("http://evil.com"), "/");
+      assert.equal(sanitizeReturnTo("https://evil.com/phishing/login"), "/");
+      assert.equal(sanitizeReturnTo("http://localhost:3000/bypass"), "/");
+      assert.equal(sanitizeReturnTo("ftp://malicious.org/payload"), "/");
+    });
+
+    it("rejects protocol-relative URLs and falls back to root", () => {
+      assert.equal(sanitizeReturnTo("//evil.com"), "/");
+      assert.equal(sanitizeReturnTo("//evil.com/path"), "/");
+      assert.equal(sanitizeReturnTo("///evil.com"), "/");
+      assert.equal(sanitizeReturnTo("//localhost"), "/");
+    });
+
+    it("rejects backslash bypasses and normalization tricks", () => {
+      assert.equal(sanitizeReturnTo("\\evil.com"), "/");
+      assert.equal(sanitizeReturnTo("/\\evil.com"), "/");
+      assert.equal(sanitizeReturnTo("/\\/evil.com"), "/");
+      assert.equal(sanitizeReturnTo("/invoices\\evil.com"), "/");
+      assert.equal(sanitizeReturnTo("\\\\evil.com"), "/");
+    });
+
+    it("rejects javascript:, data:, and pseudo-protocol injection", () => {
+      assert.equal(sanitizeReturnTo("javascript:alert(1)"), "/");
+      assert.equal(sanitizeReturnTo("javascript:void(0)"), "/");
+      assert.equal(
+        sanitizeReturnTo("data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg=="),
+        "/"
+      );
+      assert.equal(sanitizeReturnTo("/javascript:alert(1)"), "/");
+      assert.equal(sanitizeReturnTo("/http://evil.com"), "/");
+      assert.equal(sanitizeReturnTo("/evil.com:8080"), "/");
+    });
+
+    it("rejects unencoded whitespace, control characters, and newlines", () => {
+      assert.equal(sanitizeReturnTo("/invoices\n/evil"), "/");
+      assert.equal(sanitizeReturnTo("/invoices\r\n"), "/");
+      assert.equal(sanitizeReturnTo("/evil com"), "/");
+      assert.equal(sanitizeReturnTo("/\t/tabbed"), "/");
+    });
+
+    it("falls back to root for null, undefined, empty, or non-string inputs", () => {
+      assert.equal(sanitizeReturnTo(null), "/");
+      assert.equal(sanitizeReturnTo(undefined), "/");
+      assert.equal(sanitizeReturnTo(""), "/");
+      assert.equal(sanitizeReturnTo("     "), "/");
+      assert.equal(sanitizeReturnTo(123 as unknown as string), "/");
+      assert.equal(sanitizeReturnTo({} as unknown as string), "/");
+    });
   });
 });

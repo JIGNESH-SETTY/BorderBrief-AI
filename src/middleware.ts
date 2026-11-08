@@ -15,6 +15,7 @@ import {
   isDemoGateActive,
   verifySessionToken,
   DEMO_COOKIE_NAME,
+  sanitizeReturnTo,
 } from "./lib/security/demo-auth.ts";
 
 export async function middleware(req: NextRequest) {
@@ -70,7 +71,7 @@ export async function middleware(req: NextRequest) {
 
   // 6. Unauthenticated: Browser visits redirect to /demo-login
   const loginUrl = new URL("/demo-login", req.url);
-  loginUrl.searchParams.set("returnTo", pathname);
+  loginUrl.searchParams.set("returnTo", sanitizeReturnTo(pathname));
   return NextResponse.redirect(loginUrl);
 }
 
