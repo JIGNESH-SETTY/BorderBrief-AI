@@ -11,11 +11,27 @@ import {
 } from "../lib/security/demo-auth.ts";
 
 describe("Sprint 8: Demo Security & Gatekeeper", () => {
-  it("enforces strict webhook exemption for unauthenticated PayPal callbacks", () => {
+  it("enforces strict webhook exemption for unauthenticated PayPal callbacks and public routes", () => {
     assert.ok(DEMO_EXEMPT_ROUTES.includes("/api/payments/paypal/webhook"));
     assert.ok(DEMO_EXEMPT_ROUTES.includes("/demo-login"));
     assert.ok(DEMO_EXEMPT_ROUTES.includes("/api/demo/auth"));
+    assert.ok(DEMO_EXEMPT_ROUTES.includes("/"));
+    assert.ok(DEMO_EXEMPT_ROUTES.includes("/corridor/india-usa"));
     assert.equal(DEMO_COOKIE_NAME, "bb_demo_session");
+  });
+
+  it("verifies guest session tokens for 'Continue without signing in' demo access", async () => {
+    const originalSecret = process.env.DEMO_ACCESS_SECRET;
+    try {
+      process.env.DEMO_ACCESS_SECRET = "ProductionHackathonSecret2026";
+      const guestToken = await computeDemoToken("guest:" + process.env.DEMO_ACCESS_SECRET);
+      assert.equal(await verifySessionToken(guestToken), true);
+
+      const openToken = await computeDemoToken("open-demo-session");
+      assert.equal(await verifySessionToken(openToken), true);
+    } finally {
+      process.env.DEMO_ACCESS_SECRET = originalSecret;
+    }
   });
 
   it("verifies passcode correctly when configured", () => {

@@ -115,51 +115,51 @@ export default function InvoicesHistoryPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "PAID":
-        return <Badge variant="success">PAID</Badge>;
+        return <Badge variant="mint">PAID</Badge>;
       case "REFUNDED":
-        return <Badge variant="warning" className="bg-purple-100 text-purple-800 border-purple-200">REFUNDED</Badge>;
+        return <Badge variant="warning">REFUNDED</Badge>;
       case "ISSUED":
         return <Badge variant="primary">ISSUED</Badge>;
       default:
-        return <Badge variant="warning">DRAFT</Badge>;
+        return <Badge variant="saffron">DRAFT</Badge>;
     }
   };
 
   const getPaymentBadge = (payment?: EnrichedInvoice["payment"]) => {
     if (!payment) {
-      return <span className="text-xs text-slate-400 font-mono">Unpaid</span>;
+      return <span className="text-xs text-mute font-mono">Unpaid</span>;
     }
     switch (payment.status) {
       case "COMPLETED":
         return (
-          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-sea bg-sea-soft px-2.5 py-0.5 rounded-full border border-sea/20">
+            <CheckCircle2 className="w-3 h-3 text-sea" />
             Verified Paid
           </span>
         );
       case "REFUNDED":
         return (
-          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">
+          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#8A5200] bg-saffron-soft px-2.5 py-0.5 rounded-full border border-saffron/20">
             Refunded
           </span>
         );
       case "APPROVED":
         return (
-          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
-            <Clock className="w-3 h-3 text-sky-600" />
+          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-sea bg-mint-soft px-2.5 py-0.5 rounded-full border border-mint/20">
+            <Clock className="w-3 h-3 text-sea" />
             Approved
           </span>
         );
       case "FAILED":
       case "CANCELLED":
         return (
-          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded-full border border-rose-200">
             Failed
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-text bg-bg px-2.5 py-0.5 rounded-full border border-line">
             {payment.status}
           </span>
         );
@@ -167,78 +167,68 @@ export default function InvoicesHistoryPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-5">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <div className="p-1.5 rounded-lg bg-sky-100 text-sky-700">
-              <Receipt className="w-5 h-5" />
-            </div>
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-              Export Commercial Invoices & Receipts
-            </h1>
-          </div>
-          <p className="text-xs sm:text-sm text-slate-500">
-            Retrieve saved draft invoices, download official binary PDF documents, and view verified PayPal Sandbox payment receipts.
+    <div className="space-y-6">
+      {/* Redesigned Header */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-2 border-b border-line">
+        <div className="space-y-1">
+          <h1 className="font-heading text-3xl sm:text-4xl font-extrabold text-text tracking-tight">
+            Invoices &amp; receipts
+          </h1>
+          <p className="text-sm sm:text-base text-mute">
+            Open saved drafts, download official PDF invoices and view verified PayPal Sandbox receipts.
           </p>
         </div>
 
         <div className="flex items-center gap-2.5 shrink-0">
-          <Button
-            variant="outline"
-            size="sm"
+          <button
+            type="button"
             onClick={fetchInvoices}
             disabled={isLoading}
-            className="text-xs text-slate-700 hover:bg-slate-50"
+            className="btn-g inline-flex items-center gap-1.5 px-4 py-2 rounded-full font-semibold text-xs transition-all"
           >
-            <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isLoading ? "animate-spin" : ""}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />
             <span>Refresh</span>
-          </Button>
+          </button>
 
-          <Link href="/export/new">
-            <Button size="sm" className="bg-sky-600 hover:bg-sky-700 text-white font-medium text-xs shadow-sm">
-              <FilePlus className="w-3.5 h-3.5 mr-1.5" />
-              <span>Create New Export</span>
-            </Button>
+          <Link
+            href="/export/new"
+            className="btn-p inline-flex items-center gap-1.5 px-5 py-2 rounded-full font-semibold text-xs transition-all shadow-sm"
+          >
+            <FilePlus className="w-3.5 h-3.5 text-[#1A1204]" />
+            <span>New export</span>
           </Link>
         </div>
       </div>
 
-      {/* Demo Mode Notice */}
-      <div className="p-3 bg-sky-50 border border-sky-200/80 rounded-xl text-xs text-sky-900 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <ShieldCheck className="w-4 h-4 text-sky-600 shrink-0" />
-          <span>
-            <strong>Local SQLite Persistence:</strong> Saved commercial invoices and payments are persisted locally in <code className="bg-sky-100 px-1 py-0.5 rounded font-mono text-[11px]">borderbrief.db</code>. No sensitive payment credentials are stored.
-          </span>
-        </div>
-        <span className="text-[10px] font-mono text-sky-700 uppercase bg-sky-100/80 px-2 py-0.5 rounded shrink-0">
-          Single-User Demo
+      {/* Redesigned Note Banner */}
+      <div className="note text-text">
+        <ShieldCheck className="w-5 h-5 text-sea shrink-0" />
+        <span className="text-[13.5px] sm:text-sm">
+          <strong className="text-text font-bold">Saved on this device.</strong> Invoices and payments live locally in <code>borderbrief.db</code>. No payment credentials are stored. Single-user demo mode.
         </span>
       </div>
 
       {/* Search Bar & Counter */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         <div className="relative flex-1 max-w-md">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-mute absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
-            type="text"
-            placeholder="Search by invoice #, buyer name, city, or status..."
+            type="search"
+            placeholder="Search by invoice number, buyer, city or status..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all shadow-sm"
+            className="w-full pl-10 pr-4 py-2.5 rounded-full border border-line bg-card text-xs sm:text-sm text-text placeholder:text-mute focus:outline-none focus:border-sea focus:ring-2 focus:ring-sea/20 transition-all shadow-sm"
           />
         </div>
 
-        <div className="text-xs text-slate-500 flex items-center gap-2">
-          <span>Showing <strong>{filteredInvoices.length}</strong> of {invoices.length} saved invoice(s)</span>
+        <div className="text-xs text-mute flex items-center gap-2">
+          <span>{filteredInvoices.length} of {invoices.length} invoice(s)</span>
         </div>
       </div>
 
       {/* Error State */}
       {errorMessage && (
-        <Card className="border-rose-200 bg-rose-50 text-rose-900 p-4">
+        <Card className="border-rose-200 bg-rose-50 text-rose-900 p-4 rounded-[18px]">
           <div className="flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
             <div className="space-y-1 flex-1">
@@ -248,7 +238,7 @@ export default function InvoicesHistoryPage() {
                 variant="outline"
                 size="sm"
                 onClick={fetchInvoices}
-                className="mt-2 text-xs border-rose-300 text-rose-900 hover:bg-rose-100"
+                className="mt-2 text-xs border-rose-300 text-rose-900 hover:bg-rose-100 rounded-full"
               >
                 Retry
               </Button>
@@ -261,168 +251,161 @@ export default function InvoicesHistoryPage() {
       {isLoading && (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="p-5 rounded-xl border border-slate-200 bg-white animate-pulse space-y-3">
+            <div key={i} className="p-6 rounded-[22px] border border-line bg-card animate-pulse space-y-3">
               <div className="flex items-center justify-between">
-                <div className="w-32 h-4 bg-slate-200 rounded" />
-                <div className="w-16 h-4 bg-slate-200 rounded" />
+                <div className="w-32 h-4 bg-line rounded" />
+                <div className="w-16 h-4 bg-line rounded" />
               </div>
-              <div className="w-48 h-3 bg-slate-100 rounded" />
+              <div className="w-48 h-3 bg-bg rounded" />
             </div>
           ))}
         </div>
       )}
 
-      {/* Empty State */}
+      {/* Empty State matching Design file with Slanted Document */}
       {!isLoading && !errorMessage && filteredInvoices.length === 0 && (
-        <Card className="border-slate-200 text-center py-12 px-6">
-          <div className="max-w-md mx-auto space-y-4">
-            <div className="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center mx-auto">
-              <FileText className="w-6 h-6" />
-            </div>
-            <div className="space-y-1">
-              <h3 className="text-base font-bold text-slate-900">
-                {searchQuery ? "No matching invoices found" : "No saved commercial invoices yet"}
-              </h3>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                {searchQuery
-                  ? "Try adjusting your search query or clear the filter to view all drafts."
-                  : "Complete an export assessment to generate, save, and download an official commercial invoice draft."}
-              </p>
-            </div>
+        <div className="text-center py-16 px-6 border-2 border-dashed border-line rounded-[22px] bg-card space-y-3">
+          <div className="empty-doc" />
+          <h3 className="font-heading text-2xl font-bold text-text">
+            {searchQuery ? "No matching invoices found" : "No invoices yet"}
+          </h3>
+          <p className="text-sm text-mute max-w-md mx-auto leading-relaxed">
+            {searchQuery
+              ? "Try adjusting your search query or clear the filter to view all drafts."
+              : "Finish an export assessment and your commercial invoice draft will be saved here, ready to download."}
+          </p>
+          <div className="pt-2">
             {searchQuery ? (
-              <Button
-                variant="outline"
-                size="sm"
+              <button
+                type="button"
                 onClick={() => setSearchQuery("")}
-                className="text-xs"
+                className="btn-g px-5 py-2.5 rounded-full text-xs font-semibold"
               >
                 Clear Search Filter
-              </Button>
+              </button>
             ) : (
-              <Link href="/export/new">
-                <Button size="sm" className="bg-sky-600 hover:bg-sky-700 text-white font-medium text-xs">
-                  <FilePlus className="w-3.5 h-3.5 mr-1.5" />
-                  <span>Start First Assessment</span>
-                </Button>
+              <Link
+                href="/export/new"
+                className="btn-p inline-flex items-center gap-2 px-6 py-3 rounded-full text-sm font-bold shadow-md"
+              >
+                <FilePlus className="w-4 h-4 text-[#1A1204]" />
+                <span>Start your first assessment</span>
               </Link>
             )}
           </div>
-        </Card>
+        </div>
       )}
 
       {/* Invoice List / Table */}
       {!isLoading && filteredInvoices.length > 0 && (
-        <div className="space-y-3">
+        <div className="space-y-3.5">
           {filteredInvoices.map((inv) => {
             const hasPayment = Boolean(inv.payment);
             const isPaid = inv.status === "PAID" || inv.payment?.status === "COMPLETED";
 
             return (
-              <Card
+              <div
                 key={inv.id}
-                className={`border-slate-200/90 bg-white hover:border-sky-300 hover:shadow-sm transition-all overflow-hidden ${
-                  isPaid ? "border-emerald-200/90" : ""
+                className={`p-5 sm:p-6 rounded-[22px] border bg-card hover:border-sea/40 hover:shadow-sm transition-all overflow-hidden ${
+                  isPaid ? "border-mint/50" : "border-line"
                 }`}
               >
-                <div className="p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   {/* Left Column: Number, Buyer, Date */}
                   <div className="space-y-1.5 flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-mono font-bold text-sm text-slate-900 tracking-tight">
+                      <span className="font-mono font-bold text-sm text-text tracking-tight">
                         {inv.invoiceNumber}
                       </span>
                       {getStatusBadge(inv.status)}
                       {getPaymentBadge(inv.payment)}
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-mute">
                       <span className="flex items-center gap-1">
-                        <Building className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                        <span className="font-medium text-slate-800">{inv.buyer?.name || "U.S. Buyer"}</span>
-                        {inv.buyer?.city && <span className="text-slate-400">• {inv.buyer.city}, {inv.buyer.country || "US"}</span>}
+                        <Building className="w-3.5 h-3.5 text-mute shrink-0" />
+                        <span className="font-medium text-text">{inv.buyer?.name || "U.S. Buyer"}</span>
+                        {inv.buyer?.city && <span className="text-mute">• {inv.buyer.city}, {inv.buyer.country || "US"}</span>}
                       </span>
 
-                      <span className="flex items-center gap-1 text-slate-500">
-                        <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <span className="flex items-center gap-1 text-mute">
+                        <Calendar className="w-3.5 h-3.5 text-mute shrink-0" />
                         <span>{inv.shipment?.invoiceDate || inv.createdAt?.slice(0, 10)}</span>
                       </span>
 
-                      <span className="text-[11px] font-mono text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200">
+                      <span className="text-[11px] font-mono text-mute bg-bg px-2 py-0.5 rounded-full border border-line">
                         {inv.shipment?.incoterm || "DAP"}
                       </span>
                     </div>
 
                     {/* Line item summary */}
-                    <p className="text-xs text-slate-500 truncate max-w-xl">
+                    <p className="text-xs text-mute truncate max-w-xl">
                       {inv.items?.[0]?.description || "Export Merchandise"}
                       {inv.items?.[0]?.quantity ? ` (${inv.items[0].quantity} pcs)` : ""}
                     </p>
                   </div>
 
                   {/* Middle Column: Financial Amount */}
-                  <div className="text-left md:text-right shrink-0 border-t md:border-t-0 pt-2 md:pt-0 border-slate-100">
-                    <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                  <div className="text-left md:text-right shrink-0 border-t md:border-t-0 pt-2 md:pt-0 border-line">
+                    <div className="text-[11px] font-semibold text-mute uppercase tracking-wider">
                       Invoice Total
                     </div>
-                    <div className="font-mono font-extrabold text-base sm:text-lg text-slate-900">
+                    <div className="font-mono font-extrabold text-lg text-text">
                       ${Number(inv.invoiceTotalUSD || 0).toFixed(2)}{" "}
-                      <span className="text-xs font-normal text-slate-500">{inv.currency || "USD"}</span>
+                      <span className="text-xs font-normal text-mute">{inv.currency || "USD"}</span>
                     </div>
-                    <div className="text-[10px] text-slate-400">
+                    <div className="text-[10px] text-mute">
                       Excludes U.S. customs duties
                     </div>
                   </div>
 
                   {/* Right Column: Actions */}
-                  <div className="flex flex-wrap items-center gap-2 shrink-0 border-t md:border-t-0 pt-3 md:pt-0 border-slate-100">
+                  <div className="flex flex-wrap items-center gap-2 shrink-0 border-t md:border-t-0 pt-3 md:pt-0 border-line">
                     {/* View Preview Button */}
-                    <Button
-                      variant="outline"
-                      size="sm"
+                    <button
+                      type="button"
                       onClick={() => setPreviewInvoice(inv)}
-                      className="text-xs text-slate-700 hover:text-sky-700 hover:bg-sky-50"
+                      className="btn-g inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold hover:text-sea"
                     >
-                      <Eye className="w-3.5 h-3.5 mr-1" />
+                      <Eye className="w-3.5 h-3.5" />
                       <span>Preview</span>
-                    </Button>
+                    </button>
 
                     {/* Download PDF Button */}
                     <a
                       href={`/api/invoices/${encodeURIComponent(inv.id)}/pdf`}
                       download={`${inv.invoiceNumber}.pdf`}
-                      className="inline-flex items-center justify-center px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-sky-700 shadow-sm transition-colors"
+                      className="btn-p inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#1A1204] shadow-sm"
                     >
-                      <Download className="w-3.5 h-3.5 mr-1" />
+                      <Download className="w-3.5 h-3.5 text-[#1A1204]" />
                       <span>PDF</span>
                     </a>
 
                     {/* Payment Receipt / Status Button (if payment exists) */}
                     {hasPayment && (
-                      <Button
-                        variant="outline"
-                        size="sm"
+                      <button
+                        type="button"
                         onClick={() => setReceiptPayment(inv)}
-                        className="text-xs border-emerald-200 text-emerald-800 bg-emerald-50/50 hover:bg-emerald-100/60"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold border border-mint/40 text-sea bg-mint-soft hover:bg-mint-soft/80"
                       >
-                        <CreditCard className="w-3.5 h-3.5 mr-1 text-emerald-600" />
+                        <CreditCard className="w-3.5 h-3.5 text-sea" />
                         <span>Receipt</span>
-                      </Button>
+                      </button>
                     )}
 
                     {/* Delete Action */}
-                    <Button
-                      variant="ghost"
-                      size="sm"
+                    <button
+                      type="button"
                       onClick={(e) => handleDeleteInvoice(inv.id, e)}
                       disabled={isDeletingId === inv.id}
-                      className="text-xs text-slate-400 hover:text-rose-600 hover:bg-rose-50 p-2"
+                      className="p-2 rounded-full text-mute hover:text-rose-600 hover:bg-rose-50 transition-colors"
                       title="Delete invoice draft"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
-                    </Button>
+                    </button>
                   </div>
                 </div>
-              </Card>
+              </div>
             );
           })}
         </div>
@@ -430,47 +413,49 @@ export default function InvoicesHistoryPage() {
 
       {/* Invoice Preview Modal */}
       {previewInvoice && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto">
-          <div className="relative w-full max-w-4xl bg-slate-50 rounded-2xl shadow-2xl border border-slate-200 max-h-[92vh] flex flex-col overflow-hidden">
-            <div className="flex items-center justify-between p-4 bg-white border-b border-slate-200 shrink-0">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/70 backdrop-blur-sm overflow-y-auto">
+          <div className="relative w-full max-w-4xl bg-bg rounded-[24px] shadow-2xl border border-line max-h-[92vh] flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between p-4 bg-card border-b border-line shrink-0">
               <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4 text-sky-600" />
-                <h3 className="text-sm font-bold text-slate-900">
+                <FileText className="w-4 h-4 text-sea" />
+                <h3 className="font-heading font-bold text-sm text-text">
                   Commercial Invoice Preview — {previewInvoice.invoiceNumber}
                 </h3>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
+              <button
+                type="button"
                 onClick={() => setPreviewInvoice(null)}
-                className="text-slate-400 hover:text-slate-700 p-1.5"
+                className="p-1.5 rounded-full text-mute hover:text-text hover:bg-bg transition-colors"
               >
                 <X className="w-4 h-4" />
-              </Button>
+              </button>
             </div>
 
-            <div className="p-4 sm:p-6 overflow-y-auto flex-1">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6">
               <CommercialInvoicePreview invoice={previewInvoice} />
             </div>
 
-            <div className="p-4 bg-white border-t border-slate-200 flex items-center justify-between shrink-0">
-              <a
-                href={`/api/invoices/${encodeURIComponent(previewInvoice.id)}/pdf`}
-                download={`${previewInvoice.invoiceNumber}.pdf`}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold shadow-sm transition-colors"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>Download Draft PDF</span>
-              </a>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPreviewInvoice(null)}
-                className="text-xs"
-              >
-                Close Preview
-              </Button>
+            <div className="flex items-center justify-between p-4 bg-card border-t border-line shrink-0">
+              <span className="text-xs text-mute">
+                Format: 19 U.S.C. § 1401a DAP Commercial Invoice
+              </span>
+              <div className="flex items-center gap-2">
+                <a
+                  href={`/api/invoices/${encodeURIComponent(previewInvoice.id)}/pdf`}
+                  download={`${previewInvoice.invoiceNumber}.pdf`}
+                  className="btn-p inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold text-[#1A1204]"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Download PDF</span>
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setPreviewInvoice(null)}
+                  className="btn-g px-4 py-2 rounded-full text-xs font-semibold"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -478,80 +463,61 @@ export default function InvoicesHistoryPage() {
 
       {/* Payment Receipt Modal */}
       {receiptPayment && receiptPayment.payment && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm">
-          <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
-            <div className="p-4 bg-gradient-to-r from-emerald-600 to-teal-700 text-white flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/70 backdrop-blur-sm">
+          <div className="relative w-full max-w-md bg-card rounded-[24px] shadow-2xl border border-line p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-line pb-3">
               <div className="flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-emerald-200" />
-                <h3 className="text-sm font-bold">PayPal Sandbox Payment Receipt</h3>
+                <CheckCircle2 className="w-5 h-5 text-mint" />
+                <h3 className="font-heading font-bold text-base text-text">
+                  PayPal Sandbox Payment Receipt
+                </h3>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
+              <button
+                type="button"
                 onClick={() => setReceiptPayment(null)}
-                className="text-white hover:bg-white/20 p-1"
+                className="p-1.5 rounded-full text-mute hover:text-text hover:bg-bg transition-colors"
               >
                 <X className="w-4 h-4" />
-              </Button>
+              </button>
             </div>
 
-            <div className="p-6 space-y-4 text-xs text-slate-700">
-              <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 space-y-1">
-                <div className="flex items-center justify-between font-bold text-sm text-emerald-950">
-                  <span>Verified Payment Status</span>
-                  <Badge variant="success">{receiptPayment.payment.status}</Badge>
-                </div>
-                <p className="text-[11px] text-emerald-800">
-                  This transaction was verified server-side against the official PayPal Orders API v2.
-                </p>
+            <div className="space-y-3 text-xs sm:text-sm">
+              <div className="flex justify-between py-1 border-b border-line">
+                <span className="text-mute">Status:</span>
+                <span className="font-bold text-sea">{receiptPayment.payment.status}</span>
               </div>
-
-              <div className="space-y-2 border-y border-slate-100 py-3">
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Commercial Invoice Ref:</span>
-                  <span className="font-mono font-bold text-slate-900">{receiptPayment.invoiceNumber}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Amount Charged to Buyer:</span>
-                  <span className="font-mono font-bold text-emerald-800">
-                    ${Number(receiptPayment.payment.amount).toFixed(2)} {receiptPayment.payment.currency}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">PayPal Order ID:</span>
-                  <span className="font-mono text-slate-800">{receiptPayment.payment.paypalOrderId}</span>
-                </div>
-                {receiptPayment.payment.paypalCaptureId && (
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">PayPal Capture ID:</span>
-                    <span className="font-mono text-slate-800">{receiptPayment.payment.paypalCaptureId}</span>
-                  </div>
-                )}
-                {receiptPayment.payment.captureTime && (
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Capture Timestamp:</span>
-                    <span className="text-slate-700">{receiptPayment.payment.captureTime}</span>
-                  </div>
-                )}
+              <div className="flex justify-between py-1 border-b border-line">
+                <span className="text-mute">Order ID:</span>
+                <span className="font-mono text-text">{receiptPayment.payment.paypalOrderId}</span>
               </div>
-
-              <div className="p-3 bg-slate-50 rounded-lg text-[11px] text-slate-500 space-y-1">
-                <strong className="text-slate-700 block">Statutory Customs Disclaimer:</strong>
-                <p>
-                  This payment covers exclusively the exporter&apos;s commercial receivables under Incoterms® DAP (merchandise subtotal and agreed transport). Under U.S. customs law, applicable import duties and customs fees are assessed upon arrival by CBP and payable by the U.S. Importer of Record.
-                </p>
+              {receiptPayment.payment.paypalCaptureId && (
+                <div className="flex justify-between py-1 border-b border-line">
+                  <span className="text-mute">Capture ID:</span>
+                  <span className="font-mono text-text">{receiptPayment.payment.paypalCaptureId}</span>
+                </div>
+              )}
+              <div className="flex justify-between py-1 border-b border-line">
+                <span className="text-mute">Amount:</span>
+                <span className="font-bold font-mono text-text">
+                  ${Number(receiptPayment.payment.amount).toFixed(2)} {receiptPayment.payment.currency}
+                </span>
               </div>
+              {receiptPayment.payment.captureTime && (
+                <div className="flex justify-between py-1 border-b border-line">
+                  <span className="text-mute">Capture Time:</span>
+                  <span className="text-text">{new Date(receiptPayment.payment.captureTime).toLocaleString()}</span>
+                </div>
+              )}
             </div>
 
-            <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-end">
-              <Button
-                variant="outline"
-                size="sm"
+            <div className="pt-2 flex justify-end">
+              <button
+                type="button"
                 onClick={() => setReceiptPayment(null)}
-                className="text-xs"
+                className="btn-g px-5 py-2 rounded-full text-xs font-semibold"
               >
-                Close Receipt
-              </Button>
+                Close
+              </button>
             </div>
           </div>
         </div>

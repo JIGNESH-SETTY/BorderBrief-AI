@@ -328,8 +328,8 @@ export function generateCommercialInvoicePdf(invoice: CommercialInvoiceDraft): B
       drawText(statusText, margin + 280, rowY + 3, 6, true, statusColor[0], statusColor[1], statusColor[2]);
 
       drawText(`${item.quantity} ${item.unitOfMeasure}`, margin + 375, rowY + 7, 7.5, false);
-      drawText(`$${item.unitPriceUSD.toFixed(2)}`, margin + 420, rowY + 7, 7.5, false);
-      drawText(`$${item.totalPriceUSD.toFixed(2)}`, margin + 475, rowY + 7, 7.5, true);
+      drawText(`$${Number(item.unitPriceUSD || 0).toFixed(2)}`, margin + 420, rowY + 7, 7.5, false);
+      drawText(`$${Number(item.totalPriceUSD || 0).toFixed(2)}`, margin + 475, rowY + 7, 7.5, true);
     });
 
     const page1TableBottom = tableTop - page1Items.length * tableRowHeight;
@@ -412,8 +412,8 @@ export function generateCommercialInvoicePdf(invoice: CommercialInvoiceDraft): B
         drawText(statusText, margin + 280, rowY + 3, 6, true);
 
         drawText(`${item.quantity} ${item.unitOfMeasure}`, margin + 375, rowY + 7, 7.5, false);
-        drawText(`$${item.unitPriceUSD.toFixed(2)}`, margin + 420, rowY + 7, 7.5, false);
-        drawText(`$${item.totalPriceUSD.toFixed(2)}`, margin + 475, rowY + 7, 7.5, true);
+        drawText(`$${Number(item.unitPriceUSD || 0).toFixed(2)}`, margin + 420, rowY + 7, 7.5, false);
+        drawText(`$${Number(item.totalPriceUSD || 0).toFixed(2)}`, margin + 475, rowY + 7, 7.5, true);
       });
 
       const contTableBottom = tableTop - pageItems.length * tableRowHeight;
@@ -459,22 +459,22 @@ function renderBottomInvoiceBlocks(
   drawText("COMMERCIAL FINANCIAL SUMMARY", summaryLeft + 10, summaryTop - 13, 7.5, true, 0.08, 0.22, 0.38);
 
   drawText("Merchandise Subtotal:", summaryLeft + 10, summaryTop - 32, 7.5, false);
-  drawText(`$${invoice.subtotalUSD.toFixed(2)}`, summaryLeft + summaryWidth - 65, summaryTop - 32, 7.5, false);
+  drawText(`$${Number(invoice.subtotalUSD || 0).toFixed(2)}`, summaryLeft + summaryWidth - 65, summaryTop - 32, 7.5, false);
 
   drawText(`International Shipping (${invoice.shipment?.incoterm || "DAP"}):`, summaryLeft + 10, summaryTop - 44, 7.5, false);
-  drawText(`$${invoice.shippingCostUSD.toFixed(2)}`, summaryLeft + summaryWidth - 65, summaryTop - 44, 7.5, false);
+  drawText(`$${Number(invoice.shippingCostUSD || 0).toFixed(2)}`, summaryLeft + summaryWidth - 65, summaryTop - 44, 7.5, false);
 
   // Optional Cargo Insurance under DAP
-  const isInsuranceCharged = invoice.shipment?.insuranceCostUSD && invoice.shipment.insuranceCostUSD > 0;
+  const isInsuranceCharged = invoice.shipment?.insuranceCostUSD && Number(invoice.shipment.insuranceCostUSD) > 0;
   const insLabel = isInsuranceCharged ? "Cargo Insurance (Agreed):" : "Cargo Insurance (DAP Opt):";
-  const insValue = isInsuranceCharged ? `$${invoice.shipment.insuranceCostUSD.toFixed(2)}` : "$0.00";
+  const insValue = isInsuranceCharged ? `$${Number(invoice.shipment?.insuranceCostUSD || 0).toFixed(2)}` : "$0.00";
   drawText(insLabel, summaryLeft + 10, summaryTop - 56, 7.5, false);
   drawText(insValue, summaryLeft + summaryWidth - 65, summaryTop - 56, 7.5, false);
 
   drawLine(summaryLeft, summaryTop - 62, summaryLeft + summaryWidth, summaryTop - 62, 0.8, 0.84, 0.9);
   fillRect(summaryLeft, summaryTop - 80, summaryWidth, 18, 0.9, 0.94, 0.98);
   drawText("INVOICE TOTAL (SELLER):", summaryLeft + 10, summaryTop - 74, 8, true, 0.08, 0.22, 0.38);
-  drawText(`$${invoice.invoiceTotalUSD.toFixed(2)} ${invoice.currency}`, summaryLeft + summaryWidth - 75, summaryTop - 74, 8.5, true, 0.08, 0.22, 0.38);
+  drawText(`$${Number(invoice.invoiceTotalUSD || 0).toFixed(2)} ${invoice.currency || "USD"}`, summaryLeft + summaryWidth - 75, summaryTop - 74, 8.5, true, 0.08, 0.22, 0.38);
 
   // 7. Informational "Estimated U.S. Import Costs — For Reference" Box (Sprint 4 Integration)
   const importBoxWidth = contentWidth - summaryWidth - 14;
@@ -485,11 +485,11 @@ function renderBottomInvoiceBlocks(
   if (invoice.estimatedImportCosts) {
     const eic = invoice.estimatedImportCosts;
     const basis = eic.valuationStatutoryBasis || "19 U.S.C. § 1401a";
-    drawText(`Dutiable Customs Value: $${eic.dutiableValueUSD.toFixed(2)} (${basis})`, margin + 8, summaryTop - 32, 6.5, false, 0.4, 0.3, 0.1);
-    drawText(`Estimated Customs Duty: $${eic.totalCustomsDutyUSD.toFixed(2)} (Base: $${eic.baseCustomsDutyUSD.toFixed(2)} + Sec 301: $${eic.section301DutyUSD.toFixed(2)})`, margin + 8, summaryTop - 44, 6.5, false, 0.4, 0.3, 0.1);
-    const mpfStr = `Customs Fees: $${eic.totalCustomsFeesUSD.toFixed(2)} (MPF: $${eic.merchandiseProcessingFeeUSD.toFixed(2)}${eic.inboundEmsFeeUSD ? ` + EMS: $${eic.inboundEmsFeeUSD.toFixed(2)}` : ""})`;
+    drawText(`Dutiable Customs Value: $${Number(eic.dutiableValueUSD || 0).toFixed(2)} (${basis})`, margin + 8, summaryTop - 32, 6.5, false, 0.4, 0.3, 0.1);
+    drawText(`Estimated Customs Duty: $${Number(eic.totalCustomsDutyUSD || 0).toFixed(2)} (Base: $${Number(eic.baseCustomsDutyUSD || 0).toFixed(2)} + Sec 301: $${Number(eic.section301DutyUSD || 0).toFixed(2)})`, margin + 8, summaryTop - 44, 6.5, false, 0.4, 0.3, 0.1);
+    const mpfStr = `Customs Fees: $${Number(eic.totalCustomsFeesUSD || 0).toFixed(2)} (MPF: $${Number(eic.merchandiseProcessingFeeUSD || 0).toFixed(2)}${eic.inboundEmsFeeUSD ? ` + EMS: $${Number(eic.inboundEmsFeeUSD).toFixed(2)}` : ""})`;
     drawText(mpfStr, margin + 8, summaryTop - 56, 6.5, false, 0.4, 0.3, 0.1);
-    drawText(`Total Estimated Import Charges: $${eic.totalEstimatedImportChargesUSD.toFixed(2)} USD [${eic.calculationStatus}]`, margin + 8, summaryTop - 68, 7, true, 0.6, 0.3, 0.05);
+    drawText(`Total Estimated Import Charges: $${Number(eic.totalEstimatedImportChargesUSD || 0).toFixed(2)} USD [${eic.calculationStatus || "VERIFIED"}]`, margin + 8, summaryTop - 68, 7, true, 0.6, 0.3, 0.05);
     drawText("NOTICE: Payable upon U.S. arrival under DAP; NOT part of seller commercial invoice.", margin + 8, summaryTop - 77, 6, false, 0.5, 0.35, 0.1);
   } else {
     drawText("No Landed Cost Calculation Attached.", margin + 8, summaryTop - 40, 7, false, 0.5, 0.5, 0.5);

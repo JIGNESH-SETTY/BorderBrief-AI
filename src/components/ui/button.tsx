@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "outline" | "ghost" | "danger";
+  variant?: "primary" | "secondary" | "outline" | "ghost" | "danger" | "sea" | "dark";
   size?: "sm" | "md" | "lg";
   isLoading?: boolean;
 }
@@ -22,25 +22,29 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseStyles =
-      "inline-flex items-center justify-center font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none active:scale-[0.99]";
+      "inline-flex items-center justify-center font-semibold rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98]";
 
     const variantStyles = {
       primary:
-        "bg-sky-600 text-white hover:bg-sky-700 focus-visible:ring-sky-500 shadow-sm",
+        "bg-saffron text-[#1A1204] hover:bg-saffron-dark focus-visible:ring-saffron shadow-sm shadow-saffron/30 hover:-translate-y-0.5",
+      sea:
+        "bg-sea text-white hover:bg-sea-dark focus-visible:ring-sea shadow-sm shadow-sea/30 hover:-translate-y-0.5",
       secondary:
-        "bg-slate-100 text-slate-900 hover:bg-slate-200 focus-visible:ring-slate-400",
+        "bg-sea-soft text-sea hover:bg-[#d4edd9] focus-visible:ring-sea",
       outline:
-        "border border-slate-300 bg-transparent text-slate-700 hover:bg-slate-50 focus-visible:ring-sky-500",
+        "border border-line bg-white text-text hover:border-sea hover:text-sea focus-visible:ring-sea",
       ghost:
-        "bg-transparent text-slate-700 hover:bg-slate-100 focus-visible:ring-slate-400",
+        "bg-transparent text-mute hover:text-text hover:bg-sea-soft focus-visible:ring-sea",
+      dark:
+        "border border-white/30 text-white hover:bg-white/10 focus-visible:ring-white",
       danger:
         "bg-rose-600 text-white hover:bg-rose-700 focus-visible:ring-rose-500 shadow-sm",
     };
 
     const sizeStyles = {
-      sm: "text-xs px-3 py-1.5 gap-1.5",
-      md: "text-sm px-4 py-2 gap-2",
-      lg: "text-base px-6 py-2.5 gap-2.5",
+      sm: "text-xs px-3.5 py-1.5 gap-1.5",
+      md: "text-sm px-5 py-2.5 gap-2",
+      lg: "text-base px-6 py-3.5 gap-2.5",
     };
 
     return (
@@ -78,4 +82,3 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 );
 
 Button.displayName = "Button";
-

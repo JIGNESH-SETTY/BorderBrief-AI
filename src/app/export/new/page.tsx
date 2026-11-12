@@ -555,16 +555,28 @@ export default function NewExportPage() {
   };
 
   const handleProceedToInvoice = () => {
-    const draft = constructDraftInvoice();
-    setInvoiceDraft(draft);
-    setActiveStep(5);
+    try {
+      const draft = constructDraftInvoice();
+      setInvoiceDraft(draft);
+      setActiveStep(5);
+    } catch (err: unknown) {
+      console.error("Failed to construct draft commercial invoice:", err);
+      const msg = err instanceof Error ? err.message : "Failed to generate commercial invoice draft.";
+      setLandedCostError(msg);
+    }
   };
 
   const handleUpdateInvoiceDraft = () => {
-    const draft = constructDraftInvoice();
-    setInvoiceDraft(draft);
-    setSaveInvoiceSuccess(null);
-    setSaveInvoiceError(null);
+    try {
+      const draft = constructDraftInvoice();
+      setInvoiceDraft(draft);
+      setSaveInvoiceSuccess(null);
+      setSaveInvoiceError(null);
+    } catch (err: unknown) {
+      console.error("Failed to update commercial invoice draft:", err);
+      const msg = err instanceof Error ? err.message : "Failed to update commercial invoice draft.";
+      setSaveInvoiceError(msg);
+    }
   };
 
   const handleSaveInvoiceToDatabase = async () => {
@@ -820,14 +832,14 @@ export default function NewExportPage() {
         entryType13Eligibility:
           transportationMode === "POSTAL" && voluntaryPostalCompliance === "ENTRY_TYPE_13_TEST"
             ? {
-                hasRightToMakeEntry: entryType13HasRight,
-                isTestParticipant: entryType13IsParticipant,
-                hasAceFilingCapability: entryType13HasAce,
-                hasRequiredDataElements: entryType13HasReqData,
-                hasChapter99Data: entryType13HasChapter99Data,
-                isPgaDataComplete: entryType13IsPgaComplete,
-                isPgaTemporaryAcceptanceActive: entryType13IsPgaTempActive,
-              }
+              hasRightToMakeEntry: entryType13HasRight,
+              isTestParticipant: entryType13IsParticipant,
+              hasAceFilingCapability: entryType13HasAce,
+              hasRequiredDataElements: entryType13HasReqData,
+              hasChapter99Data: entryType13HasChapter99Data,
+              isPgaDataComplete: entryType13IsPgaComplete,
+              isPgaTemporaryAcceptanceActive: entryType13IsPgaTempActive,
+            }
             : undefined,
         isQualifyingEccfOrHub,
         packingCostUSD: parseFloat(packingCostUSD) || 0,
@@ -871,7 +883,7 @@ export default function NewExportPage() {
       ? selectedCandidateHts === classificationResult.primaryCandidate?.hts10
         ? classificationResult.primaryCandidate
         : classificationResult.alternativeCandidates.find((c) => c.hts10 === selectedCandidateHts) ||
-          classificationResult.primaryCandidate
+        classificationResult.primaryCandidate
       : null;
 
   return (
@@ -934,9 +946,7 @@ export default function NewExportPage() {
       )}
 
       {/* Stepper Progress */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
-        <Stepper steps={steps} />
-      </div>
+      <Stepper steps={steps} />
 
       {/* Validation / API Error Alert */}
       {validationError && (
@@ -972,41 +982,44 @@ export default function NewExportPage() {
 
       {/* ================= STEP 1: PRODUCT INTAKE FORM ================= */}
       {activeStep === 1 && (
-        <Card className="border-slate-200 shadow-sm">
+        <Card className="border-line bg-card rounded-[22px] shadow-sm">
           <CardHeader className="p-6 pb-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
-                <CardTitle className="text-xl">Describe Your Export Merchandise</CardTitle>
-                <CardDescription className="text-xs text-slate-500 mt-1">
-                  Step 1 of 5: Enter physical details of your product. Our AI extracts materials and physical attributes to prepare your shipment for US customs.
+                <CardTitle className="font-heading font-bold text-2xl text-text">Describe what you&apos;re exporting</CardTitle>
+                <CardDescription className="text-xs sm:text-sm text-mute mt-1">
+                  Step 1 of 5: Tell us what the product is and how it&apos;s made. The AI extracts materials and attributes for US customs.
                 </CardDescription>
               </div>
-              <Badge variant="outline" className="self-start sm:self-auto text-xs font-medium text-slate-600">
+              <Badge variant="mint" className="self-start sm:self-auto text-xs font-semibold">
                 Phase: Product Understanding
               </Badge>
             </div>
 
-            {/* Quick-Fill Seed Profiles for Small Businesses / Artisans */}
-            <div className="mt-4 pt-4 border-t border-slate-100">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[11px] font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                  <Sparkles className="w-3 h-3 text-sky-600" />
-                  <span>Quick-Fill Sample Indian Artisan Products:</span>
+            {/* Quick-Fill Sample Pills */}
+            <div className="quick mt-4">
+              <span className="w-full font-semibold text-xs text-text flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-saffron shrink-0" />
+                  <span>Try a sample product (1-click fill)</span>
                 </span>
-                <span className="text-[10px] text-slate-400">1-click test profiles</span>
-              </div>
+                <span className="text-[11px] font-normal text-mute">Indian artisan exports</span>
+              </span>
 
-              <div className="flex flex-wrap gap-1.5">
-                {SEED_EXPORT_PROFILES.map((profile) => (
-                  <button
-                    key={profile.id}
-                    type="button"
-                    onClick={() => handleSelectSeedProfile(profile)}
-                    className="px-2.5 py-1 text-xs bg-slate-100 hover:bg-sky-50 hover:text-sky-700 hover:border-sky-200 border border-slate-200/80 rounded-lg text-slate-700 transition-colors font-medium text-left"
-                  >
-                    {profile.title.split(" ").slice(0, 3).join(" ")}
-                  </button>
-                ))}
+              <div className="flex flex-wrap gap-2 mt-2 w-full">
+                {SEED_EXPORT_PROFILES.map((profile) => {
+                  const isSelected = productTitle === profile.title;
+                  return (
+                    <button
+                      key={profile.id}
+                      type="button"
+                      onClick={() => handleSelectSeedProfile(profile)}
+                      className={`pill ${isSelected ? "sel" : ""}`}
+                    >
+                      {profile.title.split(" ").slice(0, 3).join(" ")}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </CardHeader>
@@ -1212,7 +1225,6 @@ export default function NewExportPage() {
                   variant="primary"
                   size="md"
                   disabled={isAnalyzing}
-                  className="bg-sky-600 hover:bg-sky-500 text-white font-semibold"
                 >
                   {isAnalyzing ? (
                     <>
@@ -1235,12 +1247,12 @@ export default function NewExportPage() {
       {/* ================= STEP 2: AI PRODUCT UNDERSTANDING & SELLER CONFIRMATION ================= */}
       {activeStep === 2 && analysisResult && (
         <div className="space-y-6">
-          <Card className="border-slate-200 shadow-sm">
+          <Card className="border-line bg-card rounded-[22px] shadow-sm">
             <CardHeader className="p-6 pb-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
-                  <CardTitle className="text-xl">AI Product Analysis & Attribute Review</CardTitle>
-                  <CardDescription className="text-xs text-slate-500 mt-1">
+                  <CardTitle className="font-heading font-bold text-2xl text-text">AI Product Analysis &amp; Attribute Review</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm text-mute mt-1">
                     Step 2 of 5: Review the physical characteristics identified by Cloud AI. You can edit any field before locking the attributes.
                   </CardDescription>
                 </div>
@@ -1287,13 +1299,12 @@ export default function NewExportPage() {
                         <span className="font-medium text-slate-700">{attr.attributeName}</span>
                         <Badge
                           variant="outline"
-                          className={`text-[10px] px-1.5 py-0 ${
-                            attr.source === "EXPLICIT_SELLER"
+                          className={`text-[10px] px-1.5 py-0 ${attr.source === "EXPLICIT_SELLER"
                               ? "border-emerald-200 text-emerald-700 bg-emerald-50"
                               : attr.source === "INFERRED_ANALYSIS"
-                              ? "border-sky-200 text-sky-700 bg-sky-50"
-                              : "border-slate-200 text-slate-600"
-                          }`}
+                                ? "border-sky-200 text-sky-700 bg-sky-50"
+                                : "border-slate-200 text-slate-600"
+                            }`}
                         >
                           {attr.source === "EXPLICIT_SELLER" ? "Declared by You" : "Inferred by AI"}
                         </Badge>
@@ -1333,11 +1344,10 @@ export default function NewExportPage() {
                                     [q.id]: opt,
                                   }))
                                 }
-                                className={`px-2.5 py-1 text-xs rounded-lg border transition-all ${
-                                  clarificationAnswers[q.id] === opt
-                                    ? "bg-sky-600 text-white border-sky-600 font-medium"
-                                    : "bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200"
-                                }`}
+                                className={`px-2.5 py-1 text-xs rounded-lg border transition-all ${clarificationAnswers[q.id] === opt
+                                    ? "bg-sea text-white border-sea font-medium"
+                                    : "bg-bg hover:bg-sea-soft text-text border-line"
+                                  }`}
                               >
                                 {opt}
                               </button>
@@ -1525,11 +1535,10 @@ export default function NewExportPage() {
                 <div className="flex items-center gap-2">
                   <Badge
                     variant="outline"
-                    className={`text-[11px] font-medium ${
-                      classificationResult.status === "CLASSIFIED"
+                    className={`text-[11px] font-medium ${classificationResult.status === "CLASSIFIED"
                         ? "border-emerald-300 text-emerald-800 bg-emerald-50"
                         : "border-amber-300 text-amber-800 bg-amber-50"
-                    }`}
+                      }`}
                   >
                     {classificationResult.status === "CLASSIFIED"
                       ? "High-Confidence Match"
@@ -1570,11 +1579,10 @@ export default function NewExportPage() {
               {/* PRIMARY RECOMMENDED CANDIDATE CARD */}
               {classificationResult.primaryCandidate && (
                 <Card
-                  className={`border transition-all shadow-sm ${
-                    selectedCandidateHts === classificationResult.primaryCandidate.hts10
+                  className={`border transition-all shadow-sm ${selectedCandidateHts === classificationResult.primaryCandidate.hts10
                       ? "border-sky-400 ring-2 ring-sky-100"
                       : "border-slate-200"
-                  }`}
+                    }`}
                 >
                   <CardHeader className="p-6 pb-4">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -1719,11 +1727,10 @@ export default function NewExportPage() {
                       return (
                         <div
                           key={alt.candidateId}
-                          className={`p-4 rounded-xl border transition-all ${
-                            isSelected
+                          className={`p-4 rounded-xl border transition-all ${isSelected
                               ? "bg-sky-50/40 border-sky-400 ring-2 ring-sky-100"
                               : "bg-white border-slate-200 hover:border-slate-300"
-                          }`}
+                            }`}
                         >
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                             <div className="flex items-center gap-2">
@@ -1740,7 +1747,7 @@ export default function NewExportPage() {
                               variant={isSelected ? "primary" : "outline"}
                               size="sm"
                               onClick={() => setSelectedCandidateHts(alt.hts10)}
-                              className={`text-xs ${isSelected ? "bg-sky-600 text-white" : ""}`}
+                              className={`text-xs ${isSelected ? "text-[#1A1204]" : ""}`}
                             >
                               {isSelected ? (
                                 <>
@@ -1800,11 +1807,10 @@ export default function NewExportPage() {
                                     handleRunClassification(confirmedReview, updated);
                                   }
                                 }}
-                                className={`px-2.5 py-1 text-xs rounded-lg border transition-all ${
-                                  tariffClarificationAnswers[q.id] === opt
-                                    ? "bg-sky-600 text-white border-sky-600 font-medium"
-                                    : "bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200"
-                                }`}
+                                className={`px-2.5 py-1 text-xs rounded-lg border transition-all ${tariffClarificationAnswers[q.id] === opt
+                                    ? "bg-sea text-white border-sea font-medium"
+                                    : "bg-bg hover:bg-sea-soft text-text border-line"
+                                  }`}
                               >
                                 {opt}
                               </button>
@@ -1883,7 +1889,7 @@ export default function NewExportPage() {
                             handleCalculateLandedCost();
                           }
                         }}
-                        className="bg-sky-600 hover:bg-sky-500 text-white font-semibold flex items-center gap-2 text-xs"
+                        className="flex items-center gap-2 text-xs"
                       >
                         <Calculator className="w-4 h-4 mr-1" />
                         <span>Proceed to Step 4: Calculate Landed Cost</span>
@@ -1929,7 +1935,7 @@ export default function NewExportPage() {
                         handleCalculateLandedCost();
                       }
                     }}
-                    className="bg-sky-600 hover:bg-sky-500 text-white text-xs flex items-center gap-1.5"
+                    className="text-xs flex items-center gap-1.5"
                   >
                     <span>Go to Step 4 (Landed Cost)</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -1988,13 +1994,13 @@ export default function NewExportPage() {
           </div>
 
           {/* Shipment & Valuation Input Configuration Card */}
-          <Card className="border-slate-200 shadow-sm">
+          <Card className="border-line bg-card rounded-[22px] shadow-sm">
             <CardHeader className="p-5 pb-3">
-              <CardTitle className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <Receipt className="w-4 h-4 text-sky-600" />
-                <span>Customs Valuation & Logistics Parameters (19 U.S.C. § 1401a)</span>
+              <CardTitle className="font-heading text-base font-bold text-text flex items-center gap-2">
+                <Receipt className="w-4 h-4 text-sea" />
+                <span>Customs Valuation &amp; Logistics Parameters (19 U.S.C. § 1401a)</span>
               </CardTitle>
-              <CardDescription className="text-xs text-slate-500">
+              <CardDescription className="text-xs text-mute">
                 Configure commercial transaction terms to determine dutiable customs value and port-of-entry fees.
               </CardDescription>
             </CardHeader>
@@ -2374,7 +2380,7 @@ export default function NewExportPage() {
                   size="md"
                   onClick={handleCalculateLandedCost}
                   disabled={isCalculatingLandedCost}
-                  className="bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs flex items-center gap-1.5"
+                  className="font-semibold text-xs flex items-center gap-1.5"
                 >
                   {isCalculatingLandedCost ? (
                     <>
@@ -2454,23 +2460,21 @@ export default function NewExportPage() {
             <div className="space-y-6">
               {/* Overall Status Banner */}
               <div
-                className={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-sm ${
-                  landedCostResult.status === "VERIFIED"
+                className={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-sm ${landedCostResult.status === "VERIFIED"
                     ? "bg-emerald-50/80 border-emerald-200 text-emerald-950"
                     : landedCostResult.status === "PARTIALLY_VERIFIED"
-                    ? "bg-amber-50/80 border-amber-200 text-amber-950"
-                    : "bg-slate-50 border-slate-200 text-slate-800"
-                }`}
+                      ? "bg-amber-50/80 border-amber-200 text-amber-950"
+                      : "bg-slate-50 border-slate-200 text-slate-800"
+                  }`}
               >
                 <div className="flex items-center gap-2.5">
                   <CheckCircle2
-                    className={`w-5 h-5 shrink-0 ${
-                      landedCostResult.status === "VERIFIED"
+                    className={`w-5 h-5 shrink-0 ${landedCostResult.status === "VERIFIED"
                         ? "text-emerald-600"
                         : landedCostResult.status === "PARTIALLY_VERIFIED"
-                        ? "text-amber-600"
-                        : "text-slate-600"
-                    }`}
+                          ? "text-amber-600"
+                          : "text-slate-600"
+                      }`}
                   />
                   <div>
                     <div className="font-bold text-sm">
@@ -2480,8 +2484,8 @@ export default function NewExportPage() {
                       {landedCostResult.status === "VERIFIED"
                         ? "All tariff provisions, Section 301 determinations, and user fees verified against statutory baselines."
                         : landedCostResult.status === "PARTIALLY_VERIFIED"
-                        ? "Base rates verified; Section 301 agricultural exclusion or freight documentation is conditional."
-                        : "Advisory landed cost estimate."}
+                          ? "Base rates verified; Section 301 agricultural exclusion or freight documentation is conditional."
+                          : "Advisory landed cost estimate."}
                     </div>
                   </div>
                 </div>
@@ -2498,19 +2502,18 @@ export default function NewExportPage() {
                   {landedCostResult.postalComplianceDetails && (
                     <Badge
                       variant="outline"
-                      className={`text-[11px] font-semibold ${
-                        landedCostResult.postalComplianceDetails.procedureCertainty === "CONFIRMED"
+                      className={`text-[11px] font-semibold ${landedCostResult.postalComplianceDetails.procedureCertainty === "CONFIRMED"
                           ? "bg-emerald-100 border-emerald-300 text-emerald-900"
                           : landedCostResult.postalComplianceDetails.procedureCertainty === "UNCONFIRMED_CARRIER_HANDLING"
-                          ? "bg-amber-100 border-amber-300 text-amber-900"
-                          : "bg-sky-100 border-sky-300 text-sky-900"
-                      }`}
+                            ? "bg-amber-100 border-amber-300 text-amber-900"
+                            : "bg-sky-100 border-sky-300 text-sky-900"
+                        }`}
                     >
                       Postal: {landedCostResult.postalComplianceDetails.procedureCertainty === "CONFIRMED"
                         ? "Confirmed"
                         : landedCostResult.postalComplianceDetails.procedureCertainty === "UNCONFIRMED_CARRIER_HANDLING"
-                        ? "Carrier Handling Unconfirmed"
-                        : "Mandatory Statutory"}
+                          ? "Carrier Handling Unconfirmed"
+                          : "Mandatory Statutory"}
                     </Badge>
                   )}
                   <Badge variant="outline" className="text-[11px] bg-white border-slate-300 text-slate-700">
@@ -2769,30 +2772,29 @@ export default function NewExportPage() {
                     {/* Postal Entry Procedure Notice */}
                     {landedCostResult.postalEntryProcedure && (
                       <div
-                        className={`p-2.5 rounded-lg text-[10px] leading-relaxed border ${
-                          landedCostResult.postalEntryProcedure === "FORMAL_MAIL_REQUIRED" ||
-                          landedCostResult.postalEntryProcedure === "VOLUNTARY_FORMAL_EARLY"
+                        className={`p-2.5 rounded-lg text-[10px] leading-relaxed border ${landedCostResult.postalEntryProcedure === "FORMAL_MAIL_REQUIRED" ||
+                            landedCostResult.postalEntryProcedure === "VOLUNTARY_FORMAL_EARLY"
                             ? "bg-amber-50 text-amber-900 border-amber-200"
                             : landedCostResult.postalEntryProcedure === "INFORMAL_MAIL" ||
                               landedCostResult.postalEntryProcedure === "INFORMAL_MAIL_EXTENDED" ||
                               landedCostResult.postalEntryProcedure === "VOLUNTARY_TEST_ENTRY_TYPE_13"
-                            ? "bg-emerald-50 text-emerald-900 border-emerald-200"
-                            : "bg-slate-50 text-slate-700 border-slate-200"
-                        }`}
+                              ? "bg-emerald-50 text-emerald-900 border-emerald-200"
+                              : "bg-slate-50 text-slate-700 border-slate-200"
+                          }`}
                       >
                         <div className="font-semibold">
                           Postal Entry:{" "}
                           {landedCostResult.postalEntryProcedure === "FORMAL_MAIL_REQUIRED"
                             ? "Formal Entry Required (CBP Form 7501)"
                             : landedCostResult.postalEntryProcedure === "VOLUNTARY_FORMAL_EARLY"
-                            ? "Voluntary Early Formal Entry (CBP Form 7501)"
-                            : landedCostResult.postalEntryProcedure === "VOLUNTARY_TEST_ENTRY_TYPE_13"
-                            ? "Voluntary Entry Type 13 Test Pilot"
-                            : landedCostResult.postalEntryProcedure === "INFORMAL_MAIL_EXTENDED"
-                            ? "Informal Postal Clearance (CBP Oct 22 Extension)"
-                            : landedCostResult.postalEntryProcedure === "INFORMAL_MAIL"
-                            ? "Informal Postal Clearance Eligible"
-                            : "Unresolved Postal Classification"}
+                              ? "Voluntary Early Formal Entry (CBP Form 7501)"
+                              : landedCostResult.postalEntryProcedure === "VOLUNTARY_TEST_ENTRY_TYPE_13"
+                                ? "Voluntary Entry Type 13 Test Pilot"
+                                : landedCostResult.postalEntryProcedure === "INFORMAL_MAIL_EXTENDED"
+                                  ? "Informal Postal Clearance (CBP Oct 22 Extension)"
+                                  : landedCostResult.postalEntryProcedure === "INFORMAL_MAIL"
+                                    ? "Informal Postal Clearance Eligible"
+                                    : "Unresolved Postal Classification"}
                         </div>
                         {landedCostResult.postalEntryProcedureNotice && (
                           <div className="mt-0.5 opacity-90">
@@ -2893,9 +2895,10 @@ export default function NewExportPage() {
 
                   <Button
                     type="button"
+                    variant="primary"
                     size="md"
                     onClick={handleProceedToInvoice}
-                    className="text-xs bg-sky-600 hover:bg-sky-500 text-white font-semibold shadow-sm flex items-center gap-1.5"
+                    className="text-xs font-semibold shadow-sm flex items-center gap-1.5"
                   >
                     <span>Proceed to Commercial Invoice (Step 5)</span>
                     <ArrowRight className="w-3.5 h-3.5 ml-0.5" />
@@ -2911,20 +2914,20 @@ export default function NewExportPage() {
       {activeStep === 5 && (
         <div className="space-y-6">
           {/* Header Card */}
-          <Card className="border-slate-200/90 shadow-sm overflow-hidden">
-            <CardHeader className="bg-slate-50/70 border-b border-slate-200/80 pb-4">
+          <Card className="border-line bg-card rounded-[22px] shadow-sm overflow-hidden">
+            <CardHeader className="bg-bg/70 border-b border-line pb-4">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <Badge variant="warning" className="text-[10px] tracking-wide uppercase font-semibold">
                       Draft for Review Only
                     </Badge>
-                    <span className="text-xs text-slate-500 font-medium">Step 5 of 5 • Export Documentation</span>
+                    <span className="text-xs text-mute font-medium">Step 5 of 5 • Export Documentation</span>
                   </div>
-                  <CardTitle className="text-xl font-bold text-slate-900">
+                  <CardTitle className="font-heading text-2xl font-bold text-text">
                     Export Commercial Invoice
                   </CardTitle>
-                  <CardDescription className="text-xs text-slate-600">
+                  <CardDescription className="text-xs sm:text-sm text-mute">
                     Generate, verify, edit, and download a professional commercial invoice for export to the United States.
                   </CardDescription>
                 </div>
@@ -2938,11 +2941,10 @@ export default function NewExportPage() {
                         handleUpdateInvoiceDraft();
                         setInvoiceViewTab("preview");
                       }}
-                      className={`px-3 py-1.5 rounded-md font-medium transition-all ${
-                        invoiceViewTab === "preview"
+                      className={`px-3 py-1.5 rounded-md font-medium transition-all ${invoiceViewTab === "preview"
                           ? "bg-white text-slate-900 shadow-sm"
                           : "text-slate-600 hover:text-slate-900"
-                      }`}
+                        }`}
                     >
                       <span className="flex items-center gap-1.5">
                         <FileText className="w-3.5 h-3.5" />
@@ -2952,11 +2954,10 @@ export default function NewExportPage() {
                     <button
                       type="button"
                       onClick={() => setInvoiceViewTab("edit")}
-                      className={`px-3 py-1.5 rounded-md font-medium transition-all ${
-                        invoiceViewTab === "edit"
+                      className={`px-3 py-1.5 rounded-md font-medium transition-all ${invoiceViewTab === "edit"
                           ? "bg-white text-slate-900 shadow-sm"
                           : "text-slate-600 hover:text-slate-900"
-                      }`}
+                        }`}
                     >
                       <span className="flex items-center gap-1.5">
                         <Edit3 className="w-3.5 h-3.5" />
@@ -3102,7 +3103,7 @@ export default function NewExportPage() {
                       />
                     </div>
 
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                       <div>
                         <label className="block font-medium text-slate-700 mb-1">City</label>
                         <input
@@ -3135,7 +3136,7 @@ export default function NewExportPage() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <div>
                         <label className="block font-medium text-slate-700 mb-1">
                           Email <span className="text-rose-500">*</span>
@@ -3171,7 +3172,7 @@ export default function NewExportPage() {
                       <p className="text-[10px] text-slate-500 leading-normal">
                         BorderBrief AI does NOT invent or fabricate registration IDs. Leave blank if not yet issued.
                       </p>
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                         <div>
                           <label className="block text-[10px] text-slate-600 mb-0.5">IEC (10-digit)</label>
                           <input
@@ -3246,7 +3247,7 @@ export default function NewExportPage() {
                       />
                     </div>
 
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                       <div>
                         <label className="block font-medium text-slate-700 mb-1">City</label>
                         <input
@@ -3279,7 +3280,7 @@ export default function NewExportPage() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <div>
                         <label className="block font-medium text-slate-700 mb-1">Email</label>
                         <input
@@ -3394,9 +3395,8 @@ export default function NewExportPage() {
                         value={isInsuranceCharged ? invoiceInsuranceUSD : "0"}
                         onChange={(e) => setInvoiceInsuranceUSD(e.target.value)}
                         placeholder="0.00 (Optional under DAP)"
-                        className={`w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs focus:ring-1 focus:ring-sky-500 ${
-                          !isInsuranceCharged ? "bg-slate-100 text-slate-400 cursor-not-allowed" : "bg-white"
-                        }`}
+                        className={`w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs focus:ring-1 focus:ring-sky-500 ${!isInsuranceCharged ? "bg-slate-100 text-slate-400 cursor-not-allowed" : "bg-white"
+                          }`}
                       />
                       <span className="text-[9px] text-slate-500 block mt-0.5">
                         Optional under DAP. Seller is not obligated to procure insurance.
@@ -3506,12 +3506,13 @@ export default function NewExportPage() {
 
                   <Button
                     type="button"
+                    variant="primary"
                     size="md"
                     onClick={() => {
                       handleUpdateInvoiceDraft();
                       setInvoiceViewTab("preview");
                     }}
-                    className="text-xs bg-sky-600 hover:bg-sky-500 text-white font-semibold shadow-sm flex items-center gap-1.5"
+                    className="text-xs font-semibold shadow-sm flex items-center gap-1.5"
                   >
                     <span>Update & View Preview</span>
                     <ArrowRight className="w-3.5 h-3.5 ml-0.5" />

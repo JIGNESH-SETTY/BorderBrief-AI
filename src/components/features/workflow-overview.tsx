@@ -1,50 +1,67 @@
 import React from "react";
-import { WORKFLOW_OVERVIEW_STEPS } from "@/config/modules";
-import { Card, CardContent } from "@/components/ui/card";
-import { FileText, Sparkles, ShieldCheck, Calculator, Receipt } from "lucide-react";
+import { FileText, Sparkles, ShieldCheck, Calculator, Scale } from "lucide-react";
 
-const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
-  FileText: FileText,
-  Sparkles: Sparkles,
-  ShieldCheck: ShieldCheck,
-  Calculator: Calculator,
-  Receipt: Receipt,
-};
+export interface WorkflowStep {
+  stepNumber: number;
+  title: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
+
+const STEPS: WorkflowStep[] = [
+  {
+    stepNumber: 1,
+    title: "Describe your product",
+    description: "Name, materials, and selling price.",
+    icon: FileText,
+  },
+  {
+    stepNumber: 2,
+    title: "AI reads the details",
+    description: "Pulls out materials and intended use.",
+    icon: Sparkles,
+  },
+  {
+    stepNumber: 3,
+    title: "Match customs codes",
+    description: "Candidate HTS codes grounded in USITC Rev 22.",
+    icon: ShieldCheck,
+  },
+  {
+    stepNumber: 4,
+    title: "See landed cost",
+    description: "Duty, Section 301 and fees, itemised.",
+    icon: Calculator,
+  },
+  {
+    stepNumber: 5,
+    title: "Invoice and get paid",
+    description: "Download the PDF and collect via PayPal.",
+    icon: Scale,
+  },
+];
 
 export function WorkflowOverview() {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 w-full">
-      {WORKFLOW_OVERVIEW_STEPS.map((step) => {
-        const IconComponent = ICON_MAP[step.iconName] || FileText;
-
+    <div className="flow w-full my-6">
+      {STEPS.map((step) => {
+        const IconComponent = step.icon;
         return (
-          <Card
-            key={step.stepNumber}
-            className="border-slate-200/90 hover:border-sky-300 hover:shadow-md transition-all group relative overflow-hidden"
-          >
-            <div className="absolute top-0 left-0 right-0 h-1 bg-slate-100 group-hover:bg-sky-500 transition-colors" />
-            <CardContent className="p-5 flex flex-col h-full justify-between">
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <div className="w-9 h-9 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center group-hover:bg-sky-600 group-hover:text-white transition-colors">
-                    <IconComponent className="w-5 h-5" />
-                  </div>
-                  <span className="text-xs font-bold text-slate-400 group-hover:text-sky-600 transition-colors">
-                    0{step.stepNumber}
-                  </span>
-                </div>
-                <h4 className="text-sm font-semibold text-slate-900 mb-1">
-                  {step.title}
-                </h4>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  {step.description}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <div key={step.stepNumber} className="fs group">
+            <div className="ic shadow-sm group-hover:shadow-md transition-all">
+              <IconComponent className="w-5 h-5 transition-transform group-hover:scale-110" />
+            </div>
+            <div>
+              <h3 className="font-heading font-bold text-base text-text mb-1 group-hover:text-sea transition-colors">
+                {step.title}
+              </h3>
+              <p className="text-[13.5px] text-mute leading-relaxed">
+                {step.description}
+              </p>
+            </div>
+          </div>
         );
       })}
     </div>
   );
 }
-

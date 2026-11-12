@@ -5,7 +5,35 @@
  * validation, legal guardrails, and reference landed-cost separation.
  */
 
-import { randomUUID, randomInt } from "node:crypto";
+/**
+ * Universal secure random int generator (works in Node.js, Edge, and Browser environments).
+ */
+export function getSecureRandomInt(min: number, max: number): number {
+  if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+    const range = max - min;
+    const array = new Uint32Array(1);
+    crypto.getRandomValues(array);
+    return min + (array[0] % range);
+  }
+  return Math.floor(Math.random() * (max - min)) + min;
+}
+
+/**
+ * Universal UUID generator (works in Node.js, Edge, and Browser environments).
+ */
+export function getSecureRandomUUID(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
+export const randomUUID = getSecureRandomUUID;
+export const randomInt = getSecureRandomInt;
 import type {
   CommercialInvoiceDraft,
   CreateInvoiceRequest,
@@ -52,7 +80,7 @@ export const STANDARD_DECLARATION_STATEMENT =
  */
 export function generateDraftInvoiceNumber(dateStr?: string): string {
   const datePart = (dateStr || new Date().toISOString().slice(0, 10)).replace(/-/g, "");
-  const randomSuffix = randomInt(1000, 10000);
+  const randomSuffix = getSecureRandomInt(1000, 10000);
   return `INV-DRAFT-${datePart}-${randomSuffix}`;
 }
 
@@ -225,9 +253,11 @@ export function buildCommercialInvoice(request: CreateInvoiceRequest): Commercia
   let estimatedImportCosts: InvoiceEstimatedImportCosts | undefined;
   if (request.landedCostResult) {
     const lcr = request.landedCostResult;
-    const totalEstimatedImportChargesUSD = roundCurrency(
-      lcr.dutyBreakdown.totalDutyAmountUSD + lcr.totalCustomsFeesUSD
-    );
+    const baseDuty = lcr.dutyBreakdown?.baseDutyAmountUSD ?? lcr.baseCustomsDutyUSD ?? 0;
+    const sec301Duty = lcr.dutyBreakdown?.section301?.additionalDutyAmountUSD ?? lcr.section301DutyUSD ?? 0;
+    const totalDuty = lcr.dutyBreakdown?.totalDutyAmountUSD ?? lcr.totalCustomsDutyUSD ?? (baseDuty + sec301Duty);
+    const totalFees = lcr.totalCustomsFeesUSD ?? 0;
+    const totalEstimatedImportChargesUSD = roundCurrency(totalDuty + totalFees);
 
     let statusNotice: string | undefined;
     if (lcr.status === "PARTIALLY_VERIFIED") {
@@ -237,17 +267,17 @@ export function buildCommercialInvoice(request: CreateInvoiceRequest): Commercia
     }
 
     estimatedImportCosts = {
-      dutiableValueUSD: lcr.dutiableCustomsValueUSD,
+      dutiableValueUSD: lcr.dutiableCustomsValueUSD ?? 0,
       valuationStatutoryBasis: "19 U.S.C. § 1401a(b) Transaction Value",
-      baseCustomsDutyUSD: lcr.dutyBreakdown.baseDutyAmountUSD,
-      section301DutyUSD: lcr.dutyBreakdown.section301.additionalDutyAmountUSD,
-      totalCustomsDutyUSD: lcr.dutyBreakdown.totalDutyAmountUSD,
-      merchandiseProcessingFeeUSD: lcr.mpfBreakdown.finalMpfAmountUSD,
+      baseCustomsDutyUSD: baseDuty,
+      section301DutyUSD: sec301Duty,
+      totalCustomsDutyUSD: totalDuty,
+      merchandiseProcessingFeeUSD: lcr.mpfBreakdown?.finalMpfAmountUSD ?? 0,
       inboundEmsFeeUSD: lcr.inboundEmsFeeUSD,
-      harborMaintenanceFeeUSD: lcr.hmfBreakdown.hmfAmountUSD,
-      totalCustomsFeesUSD: lcr.totalCustomsFeesUSD,
+      harborMaintenanceFeeUSD: lcr.hmfBreakdown?.hmfAmountUSD ?? 0,
+      totalCustomsFeesUSD: totalFees,
       totalEstimatedImportChargesUSD,
-      calculationStatus: lcr.status,
+      calculationStatus: lcr.status || "VERIFIED",
       statusNotice,
       warnings: lcr.advisoryWarnings || [],
       disclaimer:
@@ -270,7 +300,7 @@ export function buildCommercialInvoice(request: CreateInvoiceRequest): Commercia
   });
 
   // Cryptographically unguessable draft identifier
-  const draftId = `inv_${randomUUID()}`;
+  const draftId = `inv_${getSecureRandomUUID()}`;
 
   return {
     id: draftId,

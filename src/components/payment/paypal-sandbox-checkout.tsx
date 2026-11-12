@@ -330,20 +330,20 @@ export function PayPalSandboxCheckout({
                 <span>Merchandise Subtotal:</span>
                 <span className="font-mono text-slate-800">
                   {currencySymbol}
-                  {invoice.subtotalUSD.toFixed(2)}
+                  {Number(invoice.subtotalUSD || 0).toFixed(2)}
                 </span>
               </div>
               <div className="flex justify-between text-slate-600">
                 <span>International Shipping ({invoice.shipment?.transportationMode || "POSTAL"}):</span>
                 <span className="font-mono text-slate-800">
                   {currencySymbol}
-                  {invoice.shippingCostUSD.toFixed(2)}
+                  {Number(invoice.shippingCostUSD || 0).toFixed(2)}
                 </span>
               </div>
               <div className="flex justify-between text-slate-600">
                 <span>Cargo Insurance (Optional under DAP):</span>
                 <span className="font-mono text-slate-800">
-                  {insuranceAmount > 0 ? `${currencySymbol}${insuranceAmount.toFixed(2)}` : "Not Charged ($0.00)"}
+                  {insuranceAmount > 0 ? `${currencySymbol}${Number(insuranceAmount).toFixed(2)}` : "Not Charged ($0.00)"}
                 </span>
               </div>
 
@@ -351,7 +351,7 @@ export function PayPalSandboxCheckout({
                 <span>PayPal Order Total:</span>
                 <span className="font-mono text-amber-700 text-base">
                   {currencySymbol}
-                  {invoice.invoiceTotalUSD.toFixed(2)} {invoice.currency}
+                  {Number(invoice.invoiceTotalUSD || 0).toFixed(2)} {invoice.currency || "USD"}
                 </span>
               </div>
             </div>
@@ -376,15 +376,15 @@ export function PayPalSandboxCheckout({
               <div className="text-[11px] text-amber-900/90 space-y-1 bg-white/70 p-2.5 rounded-lg border border-amber-200/50">
                 <div className="flex justify-between">
                   <span>Estimated Customs Duty (Base + Sec 301):</span>
-                  <span className="font-mono font-semibold">${invoice.estimatedImportCosts.totalCustomsDutyUSD.toFixed(2)}</span>
+                  <span className="font-mono font-semibold">${Number(invoice.estimatedImportCosts.totalCustomsDutyUSD || 0).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Customs User Fees (MPF / EMS / HMF):</span>
-                  <span className="font-mono font-semibold">${invoice.estimatedImportCosts.totalCustomsFeesUSD.toFixed(2)}</span>
+                  <span className="font-mono font-semibold">${Number(invoice.estimatedImportCosts.totalCustomsFeesUSD || 0).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between border-t border-amber-200/50 pt-1 font-bold text-amber-950">
                   <span>Payable upon U.S. Arrival (by Buyer):</span>
-                  <span className="font-mono">${invoice.estimatedImportCosts.totalEstimatedImportChargesUSD.toFixed(2)}</span>
+                  <span className="font-mono">${Number(invoice.estimatedImportCosts.totalEstimatedImportChargesUSD || 0).toFixed(2)}</span>
                 </div>
               </div>
             ) : (
@@ -458,7 +458,7 @@ export function PayPalSandboxCheckout({
               <div>
                 <span className="text-[10px] text-slate-500 block">Amount Captured</span>
                 <span className="font-mono font-bold text-slate-900 text-sm">
-                  ${verifiedCapture.amount.toFixed(2)} {verifiedCapture.currency}
+                  ${Number(verifiedCapture.amount || 0).toFixed(2)} {verifiedCapture.currency || "USD"}
                 </span>
               </div>
               <div>

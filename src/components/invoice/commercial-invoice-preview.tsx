@@ -69,7 +69,7 @@ export function CommercialInvoicePreview({
     }
   };
 
-  const hasUnresolvedItems = invoice.items.some(
+  const hasUnresolvedItems = Array.isArray(invoice?.items) && invoice.items.some(
     (item) => item.classificationStatus === "UNRESOLVED_AMBIGUITY"
   );
 
@@ -109,10 +109,11 @@ export function CommercialInvoicePreview({
           </Button>
 
           <Button
+            variant="primary"
             size="sm"
             onClick={handleDownloadPdf}
             disabled={isDownloadingPdf}
-            className="text-xs bg-sky-600 hover:bg-sky-700 text-white font-medium shadow-sm"
+            className="text-xs font-semibold shadow-sm text-[#1A1204]"
           >
             <Download className="w-3.5 h-3.5 mr-1.5" />
             <span>{isDownloadingPdf ? "Generating PDF..." : "Download Draft PDF"}</span>
@@ -128,7 +129,7 @@ export function CommercialInvoicePreview({
       )}
 
       {/* Missing Required Fields Notice (if any) */}
-      {!invoice.isComplete && invoice.missingRequiredFields.length > 0 && (
+      {!invoice?.isComplete && Array.isArray(invoice?.missingRequiredFields) && invoice.missingRequiredFields.length > 0 && (
         <div className="print:hidden p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-2">
           <div className="flex items-center gap-2 text-xs font-semibold text-amber-900">
             <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
@@ -299,66 +300,70 @@ export function CommercialInvoicePreview({
 
           {/* Merchandise Table */}
           <div className="border border-slate-200 rounded-lg overflow-hidden">
-            <div className="bg-slate-900 text-white text-xs px-3 py-2 font-semibold grid grid-cols-12 gap-2">
-              <span className="col-span-1 text-center">#</span>
-              <span className="col-span-5">Product Description & Materials</span>
-              <span className="col-span-2">HTS-10 Code</span>
-              <span className="col-span-1 text-center">Qty</span>
-              <span className="col-span-1 text-right">Unit Price</span>
-              <span className="col-span-2 text-right">Total ({invoice.currency})</span>
-            </div>
-
-            <div className="divide-y divide-slate-200 text-xs">
-              {invoice.items.map((item, idx) => (
-                <div key={item.id} className="p-3 grid grid-cols-12 gap-2 items-start hover:bg-slate-50/50">
-                  <span className="col-span-1 text-center font-medium text-slate-500">{idx + 1}</span>
-                  <div className="col-span-5 space-y-0.5">
-                    <div className="font-semibold text-slate-900">{item.description}</div>
-                    {item.materialComposition && (
-                      <div className="text-[11px] text-slate-600">Material: {item.materialComposition}</div>
-                    )}
-                    <div className="text-[10px] text-slate-500">Origin: {item.countryOfOrigin}</div>
-                    {item.classificationWarning && (
-                      <div className="text-[10px] text-amber-700 font-medium flex items-center gap-1 pt-0.5">
-                        <AlertTriangle className="w-3 h-3 shrink-0" />
-                        <span>{item.classificationWarning}</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="col-span-2">
-                    <span className="font-mono text-slate-800 font-medium">{item.hts10 || item.hs6 || "Unclassified"}</span>
-                    {item.classificationStatus && (
-                      <div className="pt-0.5">
-                        <Badge
-                          variant={
-                            item.classificationStatus === "CLASSIFIED"
-                              ? "success"
-                              : item.classificationStatus === "ALTERNATIVE_CANDIDATES"
-                              ? "warning"
-                              : "outline"
-                          }
-                          className={`text-[9px] px-1 py-0 ${
-                            item.classificationStatus === "UNRESOLVED_AMBIGUITY"
-                              ? "text-rose-700 border-rose-300 bg-rose-50"
-                              : ""
-                          }`}
-                        >
-                          {item.classificationStatus}
-                        </Badge>
-                      </div>
-                    )}
-                  </div>
-                  <span className="col-span-1 text-center text-slate-800">
-                    {item.quantity} {item.unitOfMeasure}
-                  </span>
-                  <span className="col-span-1 text-right text-slate-800">
-                    ${item.unitPriceUSD.toFixed(2)}
-                  </span>
-                  <span className="col-span-2 text-right font-bold text-slate-900">
-                    ${item.totalPriceUSD.toFixed(2)}
-                  </span>
+            <div className="overflow-x-auto">
+              <div className="min-w-[620px]">
+                <div className="bg-slate-900 text-white text-xs px-3 py-2 font-semibold grid grid-cols-12 gap-2">
+                  <span className="col-span-1 text-center">#</span>
+                  <span className="col-span-5">Product Description & Materials</span>
+                  <span className="col-span-2">HTS-10 Code</span>
+                  <span className="col-span-1 text-center">Qty</span>
+                  <span className="col-span-1 text-right">Unit Price</span>
+                  <span className="col-span-2 text-right">Total ({invoice.currency})</span>
                 </div>
-              ))}
+
+                <div className="divide-y divide-slate-200 text-xs bg-white">
+                  {invoice.items.map((item, idx) => (
+                    <div key={item.id} className="p-3 grid grid-cols-12 gap-2 items-start hover:bg-slate-50/50">
+                      <span className="col-span-1 text-center font-medium text-slate-500">{idx + 1}</span>
+                      <div className="col-span-5 space-y-0.5">
+                        <div className="font-semibold text-slate-900">{item.description}</div>
+                        {item.materialComposition && (
+                          <div className="text-[11px] text-slate-600">Material: {item.materialComposition}</div>
+                        )}
+                        <div className="text-[10px] text-slate-500">Origin: {item.countryOfOrigin}</div>
+                        {item.classificationWarning && (
+                          <div className="text-[10px] text-amber-700 font-medium flex items-center gap-1 pt-0.5">
+                            <AlertTriangle className="w-3 h-3 shrink-0" />
+                            <span>{item.classificationWarning}</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="col-span-2">
+                        <span className="font-mono text-slate-800 font-medium">{item.hts10 || item.hs6 || "Unclassified"}</span>
+                        {item.classificationStatus && (
+                          <div className="pt-0.5">
+                            <Badge
+                              variant={
+                                item.classificationStatus === "CLASSIFIED"
+                                  ? "success"
+                                  : item.classificationStatus === "ALTERNATIVE_CANDIDATES"
+                                  ? "warning"
+                                  : "outline"
+                              }
+                              className={`text-[9px] px-1 py-0 ${
+                                item.classificationStatus === "UNRESOLVED_AMBIGUITY"
+                                  ? "text-rose-700 border-rose-300 bg-rose-50"
+                                  : ""
+                              }`}
+                            >
+                              {item.classificationStatus}
+                            </Badge>
+                          </div>
+                        )}
+                      </div>
+                      <span className="col-span-1 text-center text-slate-800">
+                        {item.quantity} {item.unitOfMeasure}
+                      </span>
+                      <span className="col-span-1 text-right text-slate-800">
+                        ${Number(item.unitPriceUSD || 0).toFixed(2)}
+                      </span>
+                      <span className="col-span-2 text-right font-bold text-slate-900">
+                        ${Number(item.totalPriceUSD || 0).toFixed(2)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 
@@ -387,19 +392,19 @@ export function CommercialInvoicePreview({
                 <div className="space-y-1.5 text-amber-950">
                   <div className="flex justify-between text-[11px]">
                     <span className="text-amber-800">Dutiable Customs Value ({invoice.estimatedImportCosts.valuationStatutoryBasis || "19 U.S.C. § 1401a"}):</span>
-                    <span className="font-mono font-medium">${invoice.estimatedImportCosts.dutiableValueUSD.toFixed(2)}</span>
+                    <span className="font-mono font-medium">${Number(invoice.estimatedImportCosts.dutiableValueUSD || 0).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-[11px]">
                     <span className="text-amber-800">Estimated Customs Duty (Base + Sec 301):</span>
-                    <span className="font-mono font-medium">${invoice.estimatedImportCosts.totalCustomsDutyUSD.toFixed(2)}</span>
+                    <span className="font-mono font-medium">${Number(invoice.estimatedImportCosts.totalCustomsDutyUSD || 0).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-[11px]">
                     <span className="text-amber-800">Customs Fees (MPF + EMS Fee):</span>
-                    <span className="font-mono font-medium">${invoice.estimatedImportCosts.totalCustomsFeesUSD.toFixed(2)}</span>
+                    <span className="font-mono font-medium">${Number(invoice.estimatedImportCosts.totalCustomsFeesUSD || 0).toFixed(2)}</span>
                   </div>
                   <div className="pt-1.5 border-t border-amber-200/80 flex justify-between font-bold text-xs text-amber-900">
                     <span>Total Estimated Import Charges:</span>
-                    <span className="font-mono">${invoice.estimatedImportCosts.totalEstimatedImportChargesUSD.toFixed(2)} USD</span>
+                    <span className="font-mono">${Number(invoice.estimatedImportCosts.totalEstimatedImportChargesUSD || 0).toFixed(2)} USD</span>
                   </div>
                   <p className="text-[10px] text-amber-700 leading-tight pt-1">
                     ⚠ <strong>Important Notice:</strong> Under Incoterm DAP, estimated U.S. import duties and fees are assessed by CBP and payable by the buyer/importer upon U.S. arrival. They are <strong>strictly excluded</strong> from the seller&apos;s invoice total.
@@ -416,28 +421,28 @@ export function CommercialInvoicePreview({
             <div className="p-4 rounded-lg border border-slate-200 bg-slate-50 space-y-2 text-xs">
               <div className="font-bold text-slate-800 uppercase border-b border-slate-200 pb-1.5 flex items-center justify-between">
                 <span>Commercial Financial Summary</span>
-                <span className="text-[10px] text-slate-500 font-normal">Amounts in {invoice.currency}</span>
+                <span className="text-[10px] text-slate-500 font-normal">Amounts in {invoice.currency || "USD"}</span>
               </div>
               <div className="space-y-1 text-slate-700">
                 <div className="flex justify-between">
                   <span>Merchandise Subtotal:</span>
-                  <span className="font-mono font-medium">${invoice.subtotalUSD.toFixed(2)}</span>
+                  <span className="font-mono font-medium">${Number(invoice.subtotalUSD || 0).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>International Shipping ({invoice.shipment.incoterm}):</span>
-                  <span className="font-mono font-medium">${invoice.shippingCostUSD.toFixed(2)}</span>
+                  <span>International Shipping ({invoice.shipment?.incoterm || "DAP"}):</span>
+                  <span className="font-mono font-medium">${Number(invoice.shippingCostUSD || 0).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Cargo Insurance (Optional under DAP):</span>
                   <span className="font-mono font-medium">
-                    {invoice.shipment.insuranceCostUSD > 0
-                      ? `$${invoice.shipment.insuranceCostUSD.toFixed(2)}`
+                    {Number(invoice.shipment?.insuranceCostUSD || 0) > 0
+                      ? `$${Number(invoice.shipment.insuranceCostUSD).toFixed(2)}`
                       : "Not Charged ($0.00)"}
                   </span>
                 </div>
                 <div className="pt-2 border-t-2 border-slate-900 flex justify-between items-baseline font-bold text-sm text-slate-900">
                   <span>INVOICE TOTAL (SELLER):</span>
-                  <span className="font-mono text-base text-sky-800">${invoice.invoiceTotalUSD.toFixed(2)} {invoice.currency}</span>
+                  <span className="font-mono text-base text-sky-800">${Number(invoice.invoiceTotalUSD || 0).toFixed(2)} {invoice.currency || "USD"}</span>
                 </div>
                 <p className="text-[10px] text-slate-500 pt-0.5">
                   Amount payable by buyer to exporter for merchandise and transport.
@@ -481,7 +486,7 @@ export function CommercialInvoicePreview({
           {/* Statutory Disclaimers Footer */}
           <div className="pt-4 border-t border-slate-200 text-[10px] text-slate-500 space-y-1 leading-relaxed">
             <div className="font-semibold text-slate-700 uppercase">Statutory Notice & Legal Disclaimers:</div>
-            {invoice.legalDisclaimers.map((disc, idx) => (
+            {Array.isArray(invoice?.legalDisclaimers) && invoice.legalDisclaimers.map((disc, idx) => (
               <p key={idx}>• {disc}</p>
             ))}
           </div>

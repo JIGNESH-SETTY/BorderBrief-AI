@@ -9,25 +9,37 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
-        border: "var(--border)",
-        primary: {
-          DEFAULT: "#0284c7",
-          foreground: "#ffffff",
-          50: "#f0f9ff",
-          100: "#e0f2fe",
-          500: "#0ea5e9",
-          600: "#0284c7",
-          700: "#0369a1",
+        ink: "#0A2A23",
+        ink2: "#14463A",
+        sea: {
+          DEFAULT: "#17805F",
+          soft: "#E2F4EB",
+          dark: "#0F5C44",
         },
-        emerald: {
-          50: "#ecfdf5",
-          100: "#d1fae5",
-          500: "#10b981",
-          600: "#059669",
-          700: "#047857",
+        saffron: {
+          DEFAULT: "#FF9A1F",
+          soft: "#FFF1DC",
+          dark: "#E6820B",
         },
+        mint: {
+          DEFAULT: "#1FA97F",
+          soft: "#DDF5EA",
+          dark: "#148360",
+        },
+        line: "#D9E6DE",
+        mute: "#566B61",
+        text: "#10261D",
+        bg: "#F3F7F4",
+      },
+      fontFamily: {
+        display: ["'Bricolage Grotesque'", "'Segoe UI'", "system-ui", "sans-serif"],
+        body: ["'Instrument Sans'", "'Segoe UI'", "system-ui", "sans-serif"],
+        mono: ["'JetBrains Mono'", "ui-monospace", "Consolas", "monospace"],
+      },
+      borderRadius: {
+        "r-lg": "22px",
+        "r-md": "14px",
+        "r-sm": "9px",
       },
     },
   },
@@ -35,4 +47,3 @@ const config: Config = {
 };
 
 export default config;
-

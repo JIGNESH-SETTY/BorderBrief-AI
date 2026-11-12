@@ -30,8 +30,10 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2. EXEMPTION: Demo login page and demo auth API
+  // 2. EXEMPTION: Public landing pages, corridor guide, demo login page and demo auth API
   if (
+    pathname === "/" ||
+    pathname === "/corridor/india-usa" ||
     pathname === "/demo-login" ||
     pathname === "/api/demo/auth"
   ) {

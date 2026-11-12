@@ -13,60 +13,59 @@ export function ModulePlaceholderCard({
   const isFoundation = module.status === "FOUNDATION_READY";
 
   return (
-    <Card className="border-slate-200/80 bg-white hover:border-slate-300 transition-all">
+    <Card className="border-line bg-card hover:border-sea/40 transition-all rounded-[18px]">
       <CardHeader className="p-4 pb-2">
         <div className="flex items-center justify-between gap-2 mb-1.5">
-          <span className="text-xs font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded">
+          <span className="text-xs font-bold text-sea bg-sea-soft px-2.5 py-0.5 rounded-full">
             Stage 0{module.stageNumber}
           </span>
           <Badge
-            variant={isComplete || isFoundation ? "success" : "default"}
+            variant={isComplete || isFoundation ? "mint" : "default"}
             className="text-[10px]"
           >
             {isComplete ? (
               <span className="flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                <CheckCircle2 className="w-3 h-3 text-mint" />
                 {module.sprintPhase}
               </span>
             ) : isFoundation ? (
               "Foundation Ready"
             ) : (
               <span className="flex items-center gap-1">
-                <Clock className="w-3 h-3 text-slate-400" />
+                <Clock className="w-3 h-3 text-mute" />
                 {module.sprintPhase}
               </span>
             )}
           </Badge>
         </div>
-        <CardTitle className="text-sm font-semibold text-slate-900">
+        <CardTitle className="font-heading text-sm font-bold text-text">
           {module.title}
         </CardTitle>
-        <CardDescription className="text-xs text-slate-500">
+        <CardDescription className="text-xs text-mute mt-0.5">
           {module.shortDescription}
         </CardDescription>
       </CardHeader>
 
       <CardContent className="p-4 pt-2 text-xs">
-        <div className="rounded bg-slate-50 p-2.5 border border-slate-100 text-slate-600 mb-2">
-          <span className="font-medium text-slate-700 block mb-0.5">
+        <div className="rounded-[10px] bg-bg p-2.5 border border-line text-text mb-2.5">
+          <span className="font-medium text-xs block mb-0.5 text-text">
             Technical Implementation:
           </span>
-          <span className="text-[11px] font-mono text-slate-500">
+          <span className="text-[11px] font-mono text-mute break-all">
             {module.technicalRole}
           </span>
         </div>
-        <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+        <div className="flex items-center gap-1.5 text-[11px] text-mute">
+          <ShieldCheck className="w-3.5 h-3.5 text-sea shrink-0" />
           <span>
             {isComplete
               ? "Implemented, grounded, and verified in test suite."
               : isFoundation
-              ? "Base shell initialized."
-              : "Architectural component."}
+                ? "Base shell initialized."
+                : "Architectural component."}
           </span>
         </div>
       </CardContent>
     </Card>
   );
 }
-

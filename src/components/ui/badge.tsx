@@ -2,7 +2,7 @@ import React from "react";
 import { cn } from "@/lib/utils";
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: "default" | "primary" | "success" | "warning" | "outline";
+  variant?: "default" | "primary" | "success" | "warning" | "outline" | "saffron" | "mint" | "ink";
 }
 
 export function Badge({
@@ -11,11 +11,14 @@ export function Badge({
   ...props
 }: BadgeProps) {
   const variantStyles = {
-    default: "bg-slate-100 text-slate-700 border-slate-200",
-    primary: "bg-sky-50 text-sky-700 border-sky-200",
-    success: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    warning: "bg-amber-50 text-amber-700 border-amber-200",
-    outline: "bg-transparent text-slate-600 border-slate-300",
+    default: "bg-sea-soft text-sea border-line",
+    primary: "bg-sea-soft text-sea border-sea/30",
+    success: "bg-mint-soft text-[#0B7A5F] border-mint/40",
+    warning: "bg-saffron-soft text-[#8A5200] border-saffron/40",
+    outline: "bg-transparent text-mute border-line",
+    saffron: "bg-saffron-soft text-[#8A5200] border-saffron/40 font-semibold",
+    mint: "bg-mint-soft text-[#0B7A5F] border-mint/40 font-semibold",
+    ink: "bg-ink text-white border-transparent",
   };
 
   return (
@@ -29,4 +32,3 @@ export function Badge({
     />
   );
 }
-
